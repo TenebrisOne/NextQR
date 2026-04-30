@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="dark" />
+  <title>NexQR</title>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Paleta empresarial */
+      --ink: #102A43;
+      --brand: #C81D25;
+      --steel: #B0B3B8;
+      --paper: #F1F3F5;
+
+      --bg0: #071521;
+      --bg1: #0B1E2E;
+
+      --surface: rgba(241, 243, 245, 0.08);
+      --surface-strong: rgba(241, 243, 245, 0.12);
+      --border: rgba(241, 243, 245, 0.16);
+
+      --text: rgba(241, 243, 245, 0.92);
+      --muted: rgba(176, 179, 184, 0.92);
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --radius2: 22px;
+      --focus: 0 0 0 4px rgba(200,29,37,.25);
+
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+
+    html, body {
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(30,144,255,.18), transparent 60%),
+    radial-gradient(800px 600px at 90% 30%, rgba(88,101,242,.22), transparent 55%),
+    linear-gradient(160deg, #071521 0%, #0B1E2E 35%, #102A43 65%, #0F2A44 100%);
+
+
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.4rem 1rem 3.2rem;
+      overflow-x: hidden;
+    }
+
+    /* ===== BACKGROUND AMBIENCE ===== */
+    .bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background:
+        linear-gradient(90deg, rgba(241,243,245,.05) 1px, transparent 1px),
+        linear-gradient(rgba(241,243,245,.05) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: .18;
+      transform: translate3d(0,0,0);
+      animation: gridDrift 18s linear infinite;
+      mask-image: radial-gradient(circle at 50% 30%, black 0%, black 45%, transparent 75%);
+    }
+
+    .blob {
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 999px;
+      filter: blur(46px);
+      opacity: .55;
+      transform: translate3d(0,0,0);
+      animation: float 10s var(--ease) infinite;
+    }
+
+    .blob.b1 { left: -160px; top: -220px; background: rgba(200,29,37,.55); animation-delay: 0s; }
+    .blob.b2 { right: -210px; top: 80px; background: rgba(16,42,67,.9); animation-delay: 1.5s; }
+    .blob.b3 { left: 10%; bottom: -260px; background: rgba(176,179,184,.22); animation-delay: .8s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      40% { transform: translate(22px, -28px) scale(1.02); }
+      70% { transform: translate(-18px, 12px) scale(.98); }
+    }
+
+    @keyframes gridDrift {
+      0% { transform: translate(0,0); }
+      100% { transform: translate(-44px, -44px); }
+    }
+
+    /* ===== APP LAYOUT ===== */
+    .app {
+      width: 100%;
+      max-width: 980px;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    /* ===== HEADER ===== */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .55rem;
+      margin-bottom: .2rem;
+      text-align: center;
+      animation: enter 700ms var(--ease) both;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .7rem;
+    }
+
+    .badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(200,29,37,.95), rgba(200,29,37,.55));
+      box-shadow: 0 14px 26px rgba(200,29,37,.2);
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      font-weight: 900;
+      color: white;
+    }
+
+    .badge::after {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background: linear-gradient(90deg, transparent, rgba(241,243,245,.22), transparent);
+      transform: rotate(25deg) translateX(-30%);
+      animation: sheen 2.8s var(--ease) infinite;
+    }
+
+    @keyframes sheen {
+      0% { transform: rotate(25deg) translateX(-60%); opacity: .0; }
+      20% { opacity: .55; }
+      60% { opacity: .2; }
+      100% { transform: rotate(25deg) translateX(60%); opacity: 0; }
+    }
+
+    h1 {
+      font-size: clamp(1.55rem, 2.8vw, 2.05rem);
+      font-weight: 900;
+      letter-spacing: .2px;
+      color: var(--paper);
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+      max-width: 62ch;
+    }
+
+    /* ===== TABS ===== */
+    .tabs {
+      display: inline-flex;
+      gap: 0.55rem;
+      padding: .45rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      background: rgba(241,243,245,.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
+      align-self: center;
+      animation: enter 760ms var(--ease) both;
+      animation-delay: 120ms;
+    }
+
+    .tab-btn {
+      padding: 0.65rem 1.1rem;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      background: transparent;
+      color: rgba(241,243,245,.75);
+      font-size: 0.95rem;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
+      outline: none;
+      position: relative;
+    }
+
+    .tab-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(241,243,245,.08);
+      color: var(--paper);
+    }
+
+    .tab-btn:focus-visible { box-shadow: var(--focus); }
+
+    .tab-btn.active {
+      background: rgba(241,243,245,.12);
+      border-color: rgba(241,243,245,.18);
+      color: var(--paper);
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      background: linear-gradient(180deg, rgba(241,243,245,.10), rgba(241,243,245,.06));
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      padding: 1.4rem;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 1.2rem;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      animation: enter 820ms var(--ease) both;
+      animation-delay: 220ms;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background:
+        radial-gradient(600px 240px at 15% 0%, rgba(200,29,37,.22), transparent 55%),
+        radial-gradient(520px 240px at 85% 10%, rgba(241,243,245,.10), transparent 60%);
+      opacity: .9;
+      pointer-events: none;
+    }
+
+    .panel, .preview {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .section { display: flex; flex-direction: column; gap: .25rem; }
+
+    label {
+      font-size: 0.82rem;
+      color: rgba(176,179,184,.95);
+      margin-bottom: 0.35rem;
+      display: block;
+      letter-spacing: .2px;
+    }
+
+    select, input[type="text"], input[type="url"], input[type="number"], input[type="password"], textarea {
+      width: 100%;
+      padding: 0.72rem 0.85rem;
+      border: 1px solid rgba(241,243,245,.16);
+      border-radius: 14px;
+      background: rgba(7, 21, 33, .55);
+      color: var(--paper);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .18s var(--ease), transform .18s var(--ease), background .18s var(--ease);
+    }
+
+    textarea { resize: vertical; min-height: 92px; }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: rgba(200,29,37,.55);
+      box-shadow: var(--focus);
+      background: rgba(7, 21, 33, .62);
+    }
+
+    input::placeholder, textarea::placeholder { color: rgba(176,179,184,.65); }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem;
+    }
+
+    /* ===== COLOR PICKERS ===== */
+    .color-group { display: flex; align-items: center; gap: 0.65rem; }
+
+    input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(241,243,245,.18);
+      border-radius: 12px;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+      transition: transform .18s var(--ease);
+    }
+
+    input[type="color"]:hover { transform: translateY(-1px); }
+
+    #color-fg-hex, #color-bg-hex {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .82rem;
+      color: rgba(241,243,245,.78);
+      padding: .35rem .55rem;
+      border-radius: 12px;
+      border: 1px solid rgba(241,243,245,.12);
+      background: rgba(7, 21, 33, .45);
+    }
+
+    /* ===== SLIDER ===== */
+    input[type="range"] { width: 100%; accent-color: var(--brand); }
+
+    /* ===== FILE INPUT ===== */
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      padding: 0.70rem .85rem;
+      border: 1px dashed rgba(241,243,245,.22);
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      color: rgba(241,243,245,.78);
+      background: rgba(7, 21, 33, .35);
+      transition: border-color .18s var(--ease), transform .18s var(--ease), background .18s var(--ease);
+      user-select: none;
+    }
+
+    .file-label:hover {
+      border-color: rgba(200,29,37,.6);
+      transform: translateY(-1px);
+      background: rgba(7, 21, 33, .45);
+    }
+
+    #logo-input { display: none; }
+
+    /* ===== HINTS ===== */
+    .hint {
+      font-size: .82rem;
+      color: rgba(176,179,184,.92);
+      line-height: 1.35;
+    }
+
+    .wa-note {
+      font-size: .84rem;
+      color: rgba(16,42,67,.95);
+      background: rgba(241,243,245,.90);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 14px;
+      padding: .65rem .75rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,.18);
+      display: flex;
+      align-items: flex-start;
+      gap: .55rem;
+      animation: enter 520ms var(--ease) both;
+    }
+
+    .wa-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--brand);
+      margin-top: .25rem;
+      flex: none;
+      box-shadow: 0 0 0 4px rgba(200,29,37,.15);
+    }
+
+    /* ===== ALERT ===== */
+    #alert-msg {
+      font-size: 0.86rem;
+      min-height: 1.2rem;
+      text-align: left;
+      color: rgba(200,29,37,.95);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    /* ===== PREVIEW ===== */
+    .preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .7rem;
+    }
+
+    .preview-title {
+      font-weight: 850;
+      color: rgba(241,243,245,.95);
+      letter-spacing: .2px;
+    }
+
+    .preview-box {
+      background: linear-gradient(180deg, rgba(241,243,245,.98), rgba(241,243,245,.92));
+      border-radius: var(--radius2);
+      border: 1px solid rgba(0,0,0,.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 340px;
+      padding: 1.1rem;
+      box-shadow: 0 16px 40px rgba(0,0,0,.30);
+      transform: translateZ(0);
+      transition: transform .2s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-box:hover { transform: translateY(-2px); }
+
+    .preview-box::after {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(200,29,37,.10), transparent 40%),
+        radial-gradient(circle at 80% 35%, rgba(16,42,67,.10), transparent 45%);
+      pointer-events: none;
+    }
+
+    #preview-placeholder {
+      color: rgba(16,42,67,.55);
+      font-size: 0.95rem;
+      font-weight: 750;
+    }
+
+    /* ===== DOWNLOAD BUTTONS ===== */
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+    }
+
+    .btn {
+      padding: 0.85rem 0.9rem;
+      border: 1px solid rgba(241,243,245,.14);
+      border-radius: 16px;
+      font-size: 0.92rem;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform .18s var(--ease), opacity .18s var(--ease), box-shadow .18s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:focus-visible { box-shadow: var(--focus); }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    .btn-png { background: linear-gradient(180deg, rgba(200,29,37,1), rgba(200,29,37,.78)); color: #fff; }
+    .btn-svg { background: linear-gradient(180deg, rgba(241,243,245,1), rgba(176,179,184,.9)); color: #0b2235; }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background: linear-gradient(90deg, transparent, rgba(241,243,245,.26), transparent);
+      transform: rotate(25deg) translateX(-60%);
+      opacity: 0;
+      transition: opacity .18s var(--ease);
+    }
+
+    .btn:hover::after { opacity: .65; animation: btnSheen 1.2s var(--ease) both; }
+
+    @keyframes btnSheen {
+      from { transform: rotate(25deg) translateX(-60%); }
+      to   { transform: rotate(25deg) translateX(60%); }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 880px) {
+      .card { grid-template-columns: 1fr; }
+      .preview-box { min-height: 300px; }
+      .btn-group { grid-template-columns: 1fr; }
+    }
+
+    /* ===== REDUCED MOTION ===== */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+      .bg::before, .blob, .badge::after { animation: none !important; }
+    }
+
+    /* ===== HELPERS ===== */
+    .hidden { display: none !important; }
+  
+/* ===== WhatsApp: Indicativo + Número unidos visualmente ===== */
+.wa-phone {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(241,243,245,.16);
+  background: rgba(7, 21, 33, .55);
+}
+.wa-phone:focus-within {
+  border-color: rgba(200,29,37,.55);
+  box-shadow: 0 0 0 4px rgba(200,29,37,.25);
+  background: rgba(7, 21, 33, .62);
+}
+.wa-phone .wa-prefix {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: 0 .7rem;
+  border-right: 1px solid rgba(241,243,245,.12);
+  color: rgba(241,243,245,.85);
+  font-weight: 800;
+  user-select: none;
+}
+.wa-phone input {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.72rem 0.85rem !important;
+  outline: none !important;
+  color: var(--paper);
+}
+.wa-phone input::placeholder { color: rgba(176,179,184,.65); }
+
+</style>
+</head>
+
+<body>
+  <!-- Fondo animado -->
+  <div class="bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+  </div>
+
+  <div class="app">
+    <header class="hero">
+      <div class="brand">
+        <div class="badge" aria-hidden="true">⬛</div>
+        <h1>NexQR</h1>
+      </div>
+      <p class="subtitle">Genera <strong>códigos QR</strong> y <strong>códigos de barras</strong> gratis, rápido y sin enviar tus datos a ningún servidor.</p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist" aria-label="Tipo de código">
+      <button class="tab-btn active" onclick="switchTab('qr', this)" role="tab" aria-selected="true">🔲 Código QR</button>
+      <button class="tab-btn" onclick="switchTab('bar', this)" role="tab" aria-selected="false">▌▌ Código de barras</button>
+    </div>
+
+    <!-- Card principal -->
+    <div class="card">
+
+      <!-- Panel izquierdo: inputs -->
+      <div class="panel">
+
+        <!-- Sección QR -->
+        <div id="section-qr">
+          <div class="section">
+            <label for="qr-type">Tipo de dato</label>
+            <select id="qr-type" onchange="onQrTypeChange()">
+              <option value="text">Texto libre</option>
+              <option value="url">URL</option>
+              <option value="email">Email</option>
+              <option value="phone">Teléfono</option>
+              <option value="sms">SMS</option>
+              <option value="wifi">Wi‑Fi</option>
+              <option value="vcard">Contacto (vCard)</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+
+          <div id="qr-fields"><!-- dinámico --></div>
+        </div>
+
+        <!-- Sección barras -->
+        <div id="section-bar" class="hidden">
+          <div class="section">
+            <label for="bar-type">Tipo de código</label>
+            <select id="bar-type" onchange="generate()">
+              <option value="CODE128">Code 128 (texto/números)</option>
+              <option value="EAN13">EAN‑13 (13 dígitos)</option>
+              <option value="UPC">UPC‑A (12 dígitos)</option>
+              <option value="CODE39">Code 39</option>
+              <option value="ITF14">ITF‑14</option>
+              <option value="MSI">MSI</option>
+            </select>
+          </div>
+
+          <div class="section">
+            <label for="bar-data">Datos a codificar</label>
+            <input type="text" id="bar-data" placeholder="Ej: 123456789012" oninput="generate()" />
+          </div>
+        </div>
+
+        <!-- Personalización común -->
+        <div class="row">
+          <div class="section">
+            <label>Color del código</label>
+            <div class="color-group">
+              <input type="color" id="color-fg" value="#000000" oninput="generate()" />
+              <span id="color-fg-hex">#000000</span>
+            </div>
+          </div>
+          <div class="section">
+            <label>Color de fondo</label>
+            <div class="color-group">
+              <input type="color" id="color-bg" value="#ffffff" oninput="generate()" />
+              <span id="color-bg-hex">#ffffff</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <label>Tamaño: <span id="size-val">300</span> px</label>
+          <input type="range" id="size" min="100" max="800" value="300" step="10" oninput="onSizeChange()" />
+        </div>
+
+        <!-- Opciones solo QR -->
+        <div id="qr-extra">
+          <div class="row">
+            <div class="section">
+              <label for="qr-ecl">Corrección de errores</label>
+              <select id="qr-ecl" onchange="generate()">
+                <option value="L">L – Baja (7%)</option>
+                <option value="M" selected>M – Media (15%)</option>
+                <option value="Q">Q – Alta (25%)</option>
+                <option value="H">H – Máxima (30%)</option>
+              </select>
+            </div>
+            <div class="section">
+              <label>Logo (opcional)</label>
+              <label class="file-label" for="logo-input" id="logo-label">📎 Subir logo</label>
+              <input type="file" id="logo-input" accept="image/*" onchange="onLogoChange()" />
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel -->
+
+      <!-- Panel derecho: vista previa + descarga -->
+      <div class="preview">
+        <div class="preview-head">
+          <div class="preview-title">Vista previa</div>
+          <div class="hint">Tiempo real · Alta calidad</div>
+        </div>
+
+        <div id="alert-msg"></div>
+
+        <div class="preview-box" id="preview-box">
+          <div id="preview-container"></div>
+          <span id="preview-placeholder">Tu código aparecerá aquí</span>
+        </div>
+
+        <!-- (1) Mensaje informativo para WhatsApp -->
+        <div id="wa-note" class="wa-note hidden">
+          <span class="wa-dot" aria-hidden="true"></span>
+          <div>
+            <div style="font-weight:900; margin-bottom:.15rem;">Este QR abrirá WhatsApp</div>
+            <div style="opacity:.9;">Se abrirá el chat con el número ingresado y el mensaje (si lo defines) quedará prellenado.</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-png" id="btn-png" onclick="downloadPNG()" disabled>⬇ Descargar PNG</button>
+          <button class="btn btn-svg" id="btn-svg" onclick="downloadSVG()" disabled>⬇ Descargar SVG</button>
+        </div>
+      </div><!-- /preview -->
+
+    </div><!-- /card -->
+  </div><!-- /app -->
+
+  <!-- Librerías (CDN). Si quieres 100% offline, descárgalas a /libs y cámbialas aquí. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <script>
+  // Polyfill: CanvasRenderingContext2D.roundRect (para navegadores que no lo soporten)
+  if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      const radius = typeof r === 'number' ? {tl:r,tr:r,br:r,bl:r} : (r || {tl:0,tr:0,br:0,bl:0});
+      this.beginPath();
+      this.moveTo(x + radius.tl, y);
+      this.lineTo(x + w - radius.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + radius.tr);
+      this.lineTo(x + w, y + h - radius.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - radius.br, y + h);
+      this.lineTo(x + radius.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - radius.bl);
+      this.lineTo(x, y + radius.tl);
+      this.quadraticCurveTo(x, y, x + radius.tl, y);
+      this.closePath();
+      return this;
+    }
+  }
+
+  // =============================================
+  //  ESTADO GLOBAL
+  // =============================================
+  let currentTab  = 'qr';    // 'qr' | 'bar'
+  let logoDataURL = null;
+  let qrInstance  = null;
+
+  // =============================================
+  //  TABS
+  // =============================================
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+
+    document.getElementById('section-qr').classList.toggle('hidden', tab !== 'qr');
+    document.getElementById('section-bar').classList.toggle('hidden', tab !== 'bar');
+    document.getElementById('qr-extra').classList.toggle('hidden', tab !== 'qr');
+
+    // Ocultar nota WhatsApp si no aplica
+    toggleWhatsAppNote(false);
+
+    clearPreview();
+    generate();
+  }
+
+  // =============================================
+  //  CAMPOS DINÁMICOS SEGÚN TIPO QR
+  // =============================================
+  const QR_FIELDS = {
+    text:  `<div class="section"><label>Texto</label>
+            <textarea id="qr-text" rows="3" placeholder="Escribe tu texto aquí..." oninput="generate()"></textarea></div>`,
+
+    url:   `<div class="section"><label>URL</label>
+            <input type="url" id="qr-url" placeholder="https://ejemplo.com" oninput="generate()" /></div>`,
+
+    email: `<div class="section"><label>Correo electrónico</label>
+            <input type="text" id="qr-email" placeholder="correo@ejemplo.com" oninput="generate()" />
+            <label style="margin-top:0.5rem">Asunto (opcional)</label>
+            <input type="text" id="qr-email-sub" placeholder="Asunto del mensaje" oninput="generate()" /></div>`,
+
+    phone: `<div class="section"><label>Número de teléfono</label>
+            <input type="text" id="qr-phone" placeholder="+57 300 000 0000" oninput="generate()" /></div>`,
+
+    sms:   `<div class="section"><label>Número de teléfono</label>
+            <input type="text" id="qr-sms-num" placeholder="+57 300 000 0000" oninput="generate()" />
+            <label style="margin-top:0.5rem">Mensaje (opcional)</label>
+            <input type="text" id="qr-sms-msg" placeholder="Hola, te escribo por..." oninput="generate()" /></div>`,
+
+    wifi:  `<div class="section"><label>Nombre de red (SSID)</label>
+            <input type="text" id="qr-wifi-ssid" placeholder="Mi Red WiFi" oninput="generate()" />
+            <label style="margin-top:0.5rem">Contraseña</label>
+            <input type="password" id="qr-wifi-pass" placeholder="Contraseña" oninput="generate()" />
+            <label style="margin-top:0.5rem">Seguridad</label>
+            <select id="qr-wifi-sec" onchange="generate()">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Sin contraseña</option>
+            </select></div>`,
+
+    vcard: `<div class="section">
+              <div class="row">
+                <div><label>Nombre</label><input type="text" id="qr-vc-name" placeholder="Juan" oninput="generate()" /></div>
+                <div><label>Apellido</label><input type="text" id="qr-vc-last" placeholder="Pérez" oninput="generate()" /></div>
+              </div>
+              <label style="margin-top:0.5rem">Teléfono</label>
+              <input type="text" id="qr-vc-phone" placeholder="+57 300 000 0000" oninput="generate()" />
+              <label style="margin-top:0.5rem">Email</label>
+              <input type="text" id="qr-vc-email" placeholder="correo@ejemplo.com" oninput="generate()" />
+              <label style="margin-top:0.5rem">Empresa (opcional)</label>
+              <input type="text" id="qr-vc-org" placeholder="Mi Empresa" oninput="generate()" />
+            </div>`,
+
+    /* (2) WhatsApp: el usuario ingresa el indicativo del país; NO se autocompleta */
+    whatsapp: `<div class="section">
+  <label>Número de WhatsApp</label>
+  <div class="wa-phone">
+    <div class="wa-prefix">
+      <span>+</span>
+      <input type="text" id="qr-wa-cc" placeholder="57" oninput="generate()" aria-label="Indicativo del país" />
+    </div>
+    <input type="text" id="qr-wa-num" placeholder="3001234567" oninput="generate()" aria-label="Número de WhatsApp" />
+  </div>
+  <div class="hint">Indicativo y número quedan separados internamente. Se limpiarán espacios, guiones y símbolos automáticamente.</div>
+  <label style="margin-top:0.6rem">Preset de mensaje</label>
+  <select id="qr-wa-preset" onchange="applyWAPreset()">
+    <option value="">— Selecciona un preset —</option>
+    <option value="ventas">Ventas / Cotización</option>
+    <option value="soporte">Soporte técnico</option>
+    <option value="reunion">Agendar reunión</option>
+    <option value="pqr">PQR / Reclamación</option>
+    <option value="custom">Personalizado</option>
+  </select>
+  <label style="margin-top:0.6rem">Mensaje (opcional)</label>
+  <textarea id="qr-wa-msg" placeholder="Hola, quiero más información…" rows="3" oninput="generate()"></textarea>
+</div>`
+  };
+
+  const WA_PRESETS = {
+    ventas:  'Hola 👋, estoy interesado en una cotización. ¿Me puedes compartir información y precios?',
+    soporte: 'Hola 👋, necesito soporte técnico. ¿Me pueden ayudar por favor?',
+    reunion: 'Hola 👋, ¿podemos agendar una reunión? Indícame disponibilidad y un enlace de calendario si tienes.',
+    pqr:     'Hola, deseo radicar una PQR. Por favor indícame el proceso y el número de caso.'
+  };
+
+  function applyWAPreset() {
+    const sel = document.getElementById('qr-wa-preset');
+    const msg = document.getElementById('qr-wa-msg');
+    if (!sel || !msg) return;
+
+    const key = sel.value;
+    if (!key || key === 'custom') return; // no cambia
+
+    msg.value = WA_PRESETS[key] || '';
+    generate();
+  }
+
+  function toggleWhatsAppNote(force) {
+    const note = document.getElementById('wa-note');
+    if (!note) return;
+    note.classList.toggle('hidden', !force);
+  }
+
+  function onQrTypeChange() {
+    const type = document.getElementById('qr-type').value;
+    document.getElementById('qr-fields').innerHTML = QR_FIELDS[type] || '';
+
+    // Mostrar nota si el tipo es WhatsApp
+    toggleWhatsAppNote(currentTab === 'qr' && type === 'whatsapp');
+
+    clearPreview();
+    generate();
+  }
+
+  // =============================================
+  //  CONSTRUIR STRING QR SEGÚN TIPO
+  // =============================================
+  function buildQrString() {
+    const type = document.getElementById('qr-type').value;
+    const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+    switch (type) {
+      case 'text':  return g('qr-text');
+      case 'url':   {
+        const u = g('qr-url');
+        if (!u) return '';
+        return u.startsWith('http') ? u : 'https://' + u;
+      }
+      case 'email': {
+        const to = g('qr-email');
+        if (!to) return '';
+        const sub = g('qr-email-sub');
+        return `mailto:${to}${sub ? '?subject=' + encodeURIComponent(sub) : ''}`;
+      }
+      case 'phone': {
+        const p = g('qr-phone');
+        if (!p) return '';
+        return `tel:${p}`;
+      }
+      case 'sms': {
+        const num = g('qr-sms-num');
+        if (!num) return '';
+        const msg = g('qr-sms-msg');
+        return `smsto:${num}${msg ? ':' + msg : ''}`;
+      }
+      case 'wifi': {
+        const ssid = g('qr-wifi-ssid');
+        const sec  = g('qr-wifi-sec');
+        const pass = g('qr-wifi-pass');
+        if (!ssid) return '';
+        return `WIFI:T:${sec};S:${ssid};P:${pass};;`;
+      }
+      case 'vcard': {
+        const name = g('qr-vc-name');
+        const last = g('qr-vc-last');
+        const tel  = g('qr-vc-phone');
+        const em   = g('qr-vc-email');
+        const org  = g('qr-vc-org');
+        if (!name && !last && !tel && !em && !org) return '';
+        return `BEGIN:VCARD\nVERSION:3.0\nN:${last};${name}\nFN:${name} ${last}\nTEL:${tel}\nEMAIL:${em}\nORG:${org}\nEND:VCARD`;
+      }
+      case 'whatsapp': {
+        const ccRaw  = g('qr-wa-cc');
+        const numRaw = g('qr-wa-num');
+        const cc  = ccRaw.replace(/[^0-9]/g, '');
+        const num = numRaw.replace(/[^0-9]/g, '');
+        const msg = g('qr-wa-msg');
+        if (!cc || !num) return '';
+        const phone = cc + num;
+        const encodedMsg = msg ? ('?text=' + encodeURIComponent(msg)) : '';
+        return `https://wa.me/${phone}${encodedMsg}`;
+      }
+default: return '';
+    }
+  }
+
+  // =============================================
+  //  LOGO
+  // =============================================
+  function onLogoChange() {
+    const file = document.getElementById('logo-input').files[0];
+    if (!file) {
+      logoDataURL = null;
+      const lbl = document.getElementById('logo-label');
+      if (lbl) lbl.textContent='📎 Subir logo';
+      generate();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      logoDataURL = e.target.result;
+      document.getElementById('logo-label').textContent = '✅ ' + file.name.substring(0, 18);
+      // Forzar nivel H cuando hay logo
+      document.getElementById('qr-ecl').value = 'H';
+      setAlert('⚠️ Corrección de error elevada a H automáticamente por el logo.', 'warn');
+      generate();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // =============================================
+  //  UTILIDADES UI
+  // =============================================
+  function onSizeChange() {
+    const val = document.getElementById('size').value;
+    document.getElementById('size-val').textContent = val;
+    generate();
+  }
+
+  // Sincronizar etiquetas hex de colores
+  document.getElementById('color-fg').addEventListener('input', e => {
+    document.getElementById('color-fg-hex').textContent = e.target.value;
+  });
+  document.getElementById('color-bg').addEventListener('input', e => {
+    document.getElementById('color-bg-hex').textContent = e.target.value;
+  });
+
+  function setAlert(msg, type) {
+    const el = document.getElementById('alert-msg');
+    el.textContent = msg || '';
+    el.style.color = type === 'error' ? '#C81D25' : type === 'warn' ? '#0B1E2E' : '#8FE3A1';
+    if (type === 'warn') {
+      el.style.background = 'rgba(241,243,245,.86)';
+      el.style.borderRadius = '12px';
+      el.style.padding = '.45rem .6rem';
+    } else {
+      el.style.background = 'transparent';
+      el.style.padding = '0';
+    }
+  }
+
+  function clearAlert() {
+    const el = document.getElementById('alert-msg');
+    el.textContent = '';
+    el.style.background = 'transparent';
+    el.style.padding = '0';
+  }
+
+  function clearPreview() {
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'block';
+    document.getElementById('btn-png').disabled = true;
+    document.getElementById('btn-svg').disabled = true;
+    qrInstance = null;
+  }
+
+  // =============================================
+  //  GENERACIÓN PRINCIPAL
+  // =============================================
+  let debounceTimer = null;
+
+  function generate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(_generate, 120);
+  }
+
+  function _generate() {
+    clearAlert();
+    if (currentTab === 'qr') {
+      // Mantener nota WhatsApp visible solo cuando corresponde
+      const t = document.getElementById('qr-type').value;
+      toggleWhatsAppNote(t === 'whatsapp');
+      generateQR();
+    } else {
+      toggleWhatsAppNote(false);
+      generateBarcode();
+    }
+  }
+
+  // ─── GENERAR QR ───
+  function generateQR() {
+    const data = buildQrString();
+    if (!data) { clearPreview(); return; }
+
+    const size  = parseInt(document.getElementById('size').value);
+    const fg    = document.getElementById('color-fg').value;
+    const bg    = document.getElementById('color-bg').value;
+    const eclVal= document.getElementById('qr-ecl').value;
+
+    const eclMap = { L: QRCode.CorrectLevel.L, M: QRCode.CorrectLevel.M,
+                     Q: QRCode.CorrectLevel.Q, H: QRCode.CorrectLevel.H };
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      qrInstance = new QRCode(container, {
+        text:           data,
+        width:          size,
+        height:         size,
+        colorDark:      fg,
+        colorLight:     bg,
+        correctLevel:   eclMap[eclVal]
+      });
+
+      // Superponer logo si existe
+      if (logoDataURL) {
+        setTimeout(() => overlayLogo(container, size, logoDataURL), 120);
+      } else {
+        enableDownloads();
+      }
+
+    } catch (err) {
+      setAlert('❌ Error al generar el QR. Revisa los datos.', 'error');
+      clearPreview();
+    }
+  }
+
+  function overlayLogo(container, size, logoSrc) {
+    const canvas = container.querySelector('canvas');
+    if (!canvas) { enableDownloads(); return; }
+
+    const ctx   = canvas.getContext('2d');
+    const img   = new Image();
+    img.onload  = () => {
+      const logoSize  = size * 0.22;
+      const logoX     = (size - logoSize) / 2;
+      const logoY     = (size - logoSize) / 2;
+      const pad       = 7;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.roundRect(logoX - pad, logoY - pad, logoSize + pad*2, logoSize + pad*2, 10);
+      ctx.fill();
+
+      ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+      enableDownloads();
+    };
+    img.src = logoSrc;
+  }
+
+  // ─── GENERAR CÓDIGO DE BARRAS ───
+  function generateBarcode() {
+    const data = document.getElementById('bar-data').value.trim();
+    const type = document.getElementById('bar-type').value;
+    if (!data) { clearPreview(); return; }
+
+    const fg   = document.getElementById('color-fg').value;
+    const bg   = document.getElementById('color-bg').value;
+    const size = parseInt(document.getElementById('size').value);
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = `<svg id="barcode-svg"></svg>`;
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      JsBarcode('#barcode-svg', data, {
+        format:      type,
+        lineColor:   fg,
+        background:  bg,
+        width:       Math.max(1, Math.round(size / 140)),
+        height:      Math.round(size * 0.42),
+        fontSize:    Math.round(size * 0.06),
+        margin:      14,
+        valid: valid => {
+          if (!valid) {
+            setAlert('❌ Datos inválidos para el tipo de código seleccionado.', 'error');
+            clearPreview();
+          }
+        }
+      });
+      enableDownloads();
+    } catch (err) {
+      setAlert('❌ ' + err.message, 'error');
+      clearPreview();
+    }
+  }
+
+  // =============================================
+  //  HABILITAR DESCARGAS
+  // =============================================
+  function enableDownloads() {
+    document.getElementById('btn-png').disabled = false;
+    document.getElementById('btn-svg').disabled = false;
+  }
+
+  // =============================================
+  //  DESCARGAS
+  // =============================================
+  function downloadPNG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = 'codigo-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } else {
+      const svg = document.getElementById('barcode-svg');
+      if (!svg) return;
+      svgToCanvas(svg, canvas => {
+        const link = document.createElement('a');
+        link.download = 'codigo-barras.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  }
+
+  function downloadSVG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const size = canvas.width;
+      const dataURL = canvas.toDataURL('image/png');
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+        <image href="${dataURL}" width="${size}" height="${size}"/>
+      </svg>`;
+      downloadBlob(svgStr, 'codigo-qr.svg', 'image/svg+xml');
+    } else {
+      const svgEl = document.getElementById('barcode-svg');
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgEl);
+      downloadBlob(svgStr, 'codigo-barras.svg', 'image/svg+xml');
+    }
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function svgToCanvas(svgEl, callback) {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svgEl);
+    const img = new Image();
+    const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width || 520;
+      canvas.height = img.height || 260;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = document.getElementById('color-bg').value;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      callback(canvas);
+    };
+
+    img.src = url;
+  }
+
+  // INIT
+  onQrTypeChange();
+  </script>
+</body>
+</html>

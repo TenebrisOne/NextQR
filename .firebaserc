@@ -1,5 +1,14 @@
 {
   "projects": {
-    "default": "nextqr-5dfc0"
+    "default": "nexbarqr"
+  },
+  "targets": {
+    "nexbarqr": {
+      "hosting": {
+        "prod": [
+          "nexbarqr"
+        ]
+      }
+    }
   }
 }

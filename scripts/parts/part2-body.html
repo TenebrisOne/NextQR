@@ -1,0 +1,220 @@
+<body>
+  <a class="skip-link" href="#main">Saltar al generador</a>
+  <!-- Fondo estático: rejilla fina + brillo superior -->
+  <div class="bg" aria-hidden="true"></div>
+
+  <!-- Barra de aplicación -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+            <img src="/icon-192.png" alt="Símbolo de NexbarQR" width="30" height="30" />
+        </span>
+        <span class="brand-name">NexbarQR</span>
+        <span class="brand-sep" aria-hidden="true"></span>
+        <span class="brand-by">by DarkFrame</span>
+      </div>
+      <div class="appbar-meta" aria-label="Características del servicio">
+        <span class="chip">Gratis</span>
+        <span class="chip">Sin registro</span>
+        <span class="chip chip-status"><span class="status-dot" aria-hidden="true"></span>100% local</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero: títulos de portada (jerarquía H1 del kit, cap. 4.2) -->
+  <section class="hero" aria-labelledby="hero-title">
+    <span class="hero-kicker" aria-hidden="true">// generador_de_códigos</span>
+    <h1 id="hero-title" class="hero-title">Crea códigos <span class="grad">QR y de barras</span> gratis</h1>
+    <p class="hero-sub">Personaliza tu código y descárgalo en PNG o SVG, sin registro. <strong>Tus datos se procesan únicamente en tu navegador.</strong></p>
+  </section>
+
+  <!-- Área de trabajo -->
+  <main class="workspace" id="main">
+
+    <!-- Barra de herramientas -->
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Tipo de código">
+        <button type="button" id="tab-qr" class="tab-btn active" onclick="switchTab('qr', this)" role="tab" aria-selected="true" aria-controls="section-qr" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M14 14h3.2v3.2H14z"/><path d="M20.6 14.6v0M17.4 17.4v0M20.6 20.6v0M14 20.6v0"/></svg>
+          Código QR
+        </button>
+        <button type="button" id="tab-bar" class="tab-btn" onclick="switchTab('bar', this)" role="tab" aria-selected="false" aria-controls="section-bar" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v10M16 5v14M20 5v10"/></svg>
+          Código de barras
+        </button>
+      </div>
+      <div class="toolbar-meta" aria-hidden="true">
+        <span class="live"><span class="live-dot"></span>Tiempo real</span>
+        <span class="mono-tag">PNG · SVG</span>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Panel izquierdo: configuración -->
+      <section class="panel" aria-labelledby="config-title">
+        <h2 id="config-title" class="sr-only">Configura tu código</h2>
+
+        <div class="step"><span class="step-num">01</span><span class="step-title">Contenido</span></div>
+
+        <!-- Sección QR -->
+        <div id="section-qr" role="tabpanel" aria-labelledby="tab-qr">
+          <div class="section">
+            <label for="qr-type">Tipo de dato</label>
+            <select id="qr-type" onchange="onQrTypeChange()">
+              <option value="text">Texto libre</option>
+              <option value="url">URL</option>
+              <option value="email">Email</option>
+              <option value="phone">Teléfono</option>
+              <option value="sms">SMS</option>
+              <option value="wifi">Wi‑Fi</option>
+              <option value="vcard">Contacto (vCard)</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+
+          <div id="qr-fields"><!-- dinámico --></div>
+        </div>
+
+        <!-- Sección barras -->
+        <div id="section-bar" class="hidden" role="tabpanel" aria-labelledby="tab-bar" hidden>
+          <div class="section">
+            <label for="bar-type">Tipo de código</label>
+            <select id="bar-type" onchange="generate()">
+              <option value="CODE128">Code 128 (texto/números)</option>
+              <option value="EAN13">EAN‑13 (13 dígitos)</option>
+              <option value="UPC">UPC‑A (12 dígitos)</option>
+              <option value="CODE39">Code 39</option>
+              <option value="ITF14">ITF‑14</option>
+              <option value="MSI">MSI</option>
+            </select>
+          </div>
+
+          <div class="section">
+            <label for="bar-data">Datos a codificar</label>
+            <input type="text" id="bar-data" placeholder="Ej: 123456789012" oninput="generate()" />
+          </div>
+        </div>
+
+        <div class="step"><span class="step-num">02</span><span class="step-title">Personalización</span></div>
+
+        <!-- Personalización común -->
+        <div class="row">
+          <div class="section">
+            <label for="color-fg">Color del código</label>
+            <div class="color-group">
+              <input type="color" id="color-fg" value="#000000" oninput="generate()" aria-label="Color del código" />
+              <span id="color-fg-hex">#000000</span>
+            </div>
+          </div>
+          <div class="section">
+            <label for="color-bg">Color de fondo</label>
+            <div class="color-group">
+              <input type="color" id="color-bg" value="#ffffff" oninput="generate()" aria-label="Color de fondo" />
+              <span id="color-bg-hex">#ffffff</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <label for="size">Tamaño: <span id="size-val">300</span> px</label>
+          <input type="range" id="size" min="100" max="800" value="300" step="10" oninput="onSizeChange()" aria-label="Tamaño del código en píxeles" />
+        </div>
+
+        <!-- Opciones solo QR -->
+        <div id="qr-extra">
+          <div class="row">
+            <div class="section">
+              <label for="qr-ecl">Corrección de errores</label>
+              <select id="qr-ecl" onchange="generate()">
+                <option value="L">L – Baja (7%)</option>
+                <option value="M" selected>M – Media (15%)</option>
+                <option value="Q">Q – Alta (25%)</option>
+                <option value="H">H – Máxima (30%)</option>
+              </select>
+            </div>
+            <div class="section">
+              <span class="field-label">Logo (opcional)</span>
+              <label class="file-label" for="logo-input" id="logo-label">Subir logo</label>
+              <input type="file" id="logo-input" accept="image/*" onchange="onLogoChange()" />
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /panel -->
+
+      <!-- Columna derecha: vista previa + descarga -->
+      <aside class="preview-col" aria-label="Vista previa y descarga">
+        <div class="preview-head">
+          <h2 class="preview-title">Vista previa</h2>
+          <div class="hint">Alta calidad</div>
+        </div>
+
+        <div id="alert-msg" role="status" aria-live="polite"></div>
+
+        <div class="preview-box" id="preview-box">
+          <div class="corner c1" aria-hidden="true"></div>
+          <div class="corner c2" aria-hidden="true"></div>
+          <div class="corner c3" aria-hidden="true"></div>
+          <div class="corner c4" aria-hidden="true"></div>
+          <div id="preview-container"></div>
+          <span id="preview-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M14 14h3.2v3.2H14z"/><path d="M20.6 14.6v0M20.6 20.6v0M14 20.6v0"/></svg>
+            Tu código aparecerá aquí
+          </span>
+        </div>
+
+        <!-- (1) Mensaje informativo para WhatsApp -->
+        <div id="wa-note" class="wa-note hidden">
+          <span class="wa-dot" aria-hidden="true"></span>
+          <div>
+            <div style="font-weight:900; margin-bottom:.15rem;">Este QR abrirá WhatsApp</div>
+            <div style="opacity:.9;">Se abrirá el chat con el número ingresado y el mensaje (si lo defines) quedará prellenado.</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-png" id="btn-png" onclick="downloadPNG()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4.5 20h15"/></svg>
+            Descargar PNG
+          </button>
+          <button type="button" class="btn btn-svg" id="btn-svg" onclick="downloadSVG()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4.5 20h15"/></svg>
+            Descargar SVG
+          </button>
+        </div>
+      </aside><!-- /preview-col -->
+
+    </div><!-- /grid -->
+
+    <section class="info-section" aria-labelledby="info-title">
+      <h2 id="info-title">Todo lo necesario para crear tu código</h2>
+      <p class="info-intro">NexbarQR reúne en una sola herramienta la generación, personalización y descarga de códigos QR y códigos de barras. Elige el tipo de contenido, ajusta su apariencia y comprueba el resultado antes de guardarlo. La vista previa se actualiza mientras escribes.</p>
+      <div class="info-grid">
+        <article class="info-card">
+          <h3>QR para distintos contenidos</h3>
+          <p>Crea códigos para enlaces, texto, correo, teléfono, SMS, redes Wi-Fi, contactos vCard o conversaciones de WhatsApp con mensaje opcional.</p>
+        </article>
+        <article class="info-card">
+          <h3>Datos dentro de tu navegador</h3>
+          <p>El contenido se procesa localmente mientras usas la herramienta. No necesitas crear una cuenta ni enviar la información a un servidor de NexbarQR.</p>
+        </article>
+        <article class="info-card">
+          <h3>Descargas listas para usar</h3>
+          <p>Define colores, tamaño y nivel de corrección; añade un logo cuando uses QR y descarga el resultado en PNG o SVG.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Pie institucional DarkFrame (presencia discreta, sin interferir con la herramienta) -->
+    <footer class="site-footer">
+      <span>NexbarQR · Generador gratuito creado por <strong>DarkFrame</strong></span>
+      <span class="foot-meta">Sin registro · Sin anuncios · Procesamiento local</span>
+    </footer>
+  </main>
+
+  <!-- Librerías (CDN). Si quieres 100% offline, descárgalas a /libs y cámbialas aquí. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <noscript>Necesitas activar JavaScript para generar y descargar códigos QR o de barras.</noscript>

@@ -1,0 +1,517 @@
+  <script>
+  // Polyfill: CanvasRenderingContext2D.roundRect (para navegadores que no lo soporten)
+  if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      const radius = typeof r === 'number' ? {tl:r,tr:r,br:r,bl:r} : (r || {tl:0,tr:0,br:0,bl:0});
+      this.beginPath();
+      this.moveTo(x + radius.tl, y);
+      this.lineTo(x + w - radius.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + radius.tr);
+      this.lineTo(x + w, y + h - radius.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - radius.br, y + h);
+      this.lineTo(x + radius.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - radius.bl);
+      this.lineTo(x, y + radius.tl);
+      this.quadraticCurveTo(x, y, x + radius.tl, y);
+      this.closePath();
+      return this;
+    }
+  }
+
+  // =============================================
+  //  ESTADO GLOBAL
+  // =============================================
+  let currentTab  = 'qr';    // 'qr' | 'bar'
+  let logoDataURL = null;
+  let qrInstance  = null;
+
+  // =============================================
+  //  TABS
+  // =============================================
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
+
+    const qrPanel = document.getElementById('section-qr');
+    const barPanel = document.getElementById('section-bar');
+    qrPanel.classList.toggle('hidden', tab !== 'qr');
+    barPanel.classList.toggle('hidden', tab !== 'bar');
+    qrPanel.hidden = tab !== 'qr';
+    barPanel.hidden = tab !== 'bar';
+    document.getElementById('qr-extra').classList.toggle('hidden', tab !== 'qr');
+
+    // Ocultar nota WhatsApp si no aplica
+    toggleWhatsAppNote(false);
+
+    clearPreview();
+    generate();
+  }
+
+  document.querySelector('.tabs').addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('.tab-btn')];
+    const currentIndex = tabs.indexOf(document.activeElement);
+    let nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    switchTab(nextTab.id === 'tab-qr' ? 'qr' : 'bar', nextTab);
+    nextTab.focus();
+  });
+
+  // =============================================
+  //  CAMPOS DINÁMICOS SEGÚN TIPO QR
+  // =============================================
+  const QR_FIELDS = {
+    text:  `<div class="section"><label for="qr-text">Texto</label>
+            <textarea id="qr-text" rows="3" placeholder="Escribe tu texto aquí..." oninput="generate()"></textarea></div>`,
+
+    url:   `<div class="section"><label for="qr-url">URL</label>
+            <input type="url" id="qr-url" placeholder="https://ejemplo.com" inputmode="url" autocomplete="url" oninput="generate()" /></div>`,
+
+    email: `<div class="section"><label for="qr-email">Correo electrónico</label>
+            <input type="email" id="qr-email" placeholder="correo@ejemplo.com" autocomplete="email" oninput="generate()" />
+            <label for="qr-email-sub" style="margin-top:0.5rem">Asunto (opcional)</label>
+            <input type="text" id="qr-email-sub" placeholder="Asunto del mensaje" oninput="generate()" /></div>`,
+
+    phone: `<div class="section"><label for="qr-phone">Número de teléfono</label>
+            <input type="tel" id="qr-phone" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" /></div>`,
+
+    sms:   `<div class="section"><label for="qr-sms-num">Número de teléfono</label>
+            <input type="tel" id="qr-sms-num" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" />
+            <label for="qr-sms-msg" style="margin-top:0.5rem">Mensaje (opcional)</label>
+            <input type="text" id="qr-sms-msg" placeholder="Hola, te escribo por..." oninput="generate()" /></div>`,
+
+    wifi:  `<div class="section"><label for="qr-wifi-ssid">Nombre de red (SSID)</label>
+            <input type="text" id="qr-wifi-ssid" placeholder="Mi Red WiFi" oninput="generate()" />
+            <label for="qr-wifi-pass" style="margin-top:0.5rem">Contraseña</label>
+            <input type="password" id="qr-wifi-pass" placeholder="Contraseña" oninput="generate()" />
+            <label for="qr-wifi-sec" style="margin-top:0.5rem">Seguridad</label>
+            <select id="qr-wifi-sec" onchange="generate()">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Sin contraseña</option>
+            </select></div>`,
+
+    vcard: `<div class="section">
+              <div class="row">
+                <div><label for="qr-vc-name">Nombre</label><input type="text" id="qr-vc-name" placeholder="Juan" autocomplete="given-name" oninput="generate()" /></div>
+                <div><label for="qr-vc-last">Apellido</label><input type="text" id="qr-vc-last" placeholder="Pérez" autocomplete="family-name" oninput="generate()" /></div>
+              </div>
+              <label for="qr-vc-phone" style="margin-top:0.5rem">Teléfono</label>
+              <input type="tel" id="qr-vc-phone" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" />
+              <label for="qr-vc-email" style="margin-top:0.5rem">Email</label>
+              <input type="email" id="qr-vc-email" placeholder="correo@ejemplo.com" autocomplete="email" oninput="generate()" />
+              <label for="qr-vc-org" style="margin-top:0.5rem">Empresa (opcional)</label>
+              <input type="text" id="qr-vc-org" placeholder="Mi Empresa" oninput="generate()" />
+            </div>`,
+
+    /* (2) WhatsApp: el usuario ingresa el indicativo del país; NO se autocompleta */
+    whatsapp: `<div class="section">
+  <span class="field-label">Número de WhatsApp</span>
+  <div class="wa-phone">
+    <div class="wa-prefix">
+      <span>+</span>
+      <input type="text" id="qr-wa-cc" placeholder="57" oninput="generate()" aria-label="Indicativo del país" />
+    </div>
+    <input type="text" id="qr-wa-num" placeholder="3001234567" oninput="generate()" aria-label="Número de WhatsApp" />
+  </div>
+  <div class="hint">Indicativo y número quedan separados internamente. Se limpiarán espacios, guiones y símbolos automáticamente.</div>
+  <label for="qr-wa-preset" style="margin-top:0.6rem">Preset de mensaje</label>
+  <select id="qr-wa-preset" onchange="applyWAPreset()">
+    <option value="">— Selecciona un preset —</option>
+    <option value="ventas">Ventas / Cotización</option>
+    <option value="soporte">Soporte técnico</option>
+    <option value="reunion">Agendar reunión</option>
+    <option value="pqr">PQR / Reclamación</option>
+    <option value="custom">Personalizado</option>
+  </select>
+  <label for="qr-wa-msg" style="margin-top:0.6rem">Mensaje (opcional)</label>
+  <textarea id="qr-wa-msg" placeholder="Hola, quiero más información…" rows="3" oninput="generate()"></textarea>
+</div>`
+  };
+
+  const WA_PRESETS = {
+    ventas:  'Hola 👋, estoy interesado en una cotización. ¿Me puedes compartir información y precios?',
+    soporte: 'Hola 👋, necesito soporte técnico. ¿Me pueden ayudar por favor?',
+    reunion: 'Hola 👋, ¿podemos agendar una reunión? Indícame disponibilidad y un enlace de calendario si tienes.',
+    pqr:     'Hola, deseo radicar una PQR. Por favor indícame el proceso y el número de caso.'
+  };
+
+  function applyWAPreset() {
+    const sel = document.getElementById('qr-wa-preset');
+    const msg = document.getElementById('qr-wa-msg');
+    if (!sel || !msg) return;
+
+    const key = sel.value;
+    if (!key || key === 'custom') return; // no cambia
+
+    msg.value = WA_PRESETS[key] || '';
+    generate();
+  }
+
+  function toggleWhatsAppNote(force) {
+    const note = document.getElementById('wa-note');
+    if (!note) return;
+    note.classList.toggle('hidden', !force);
+  }
+
+  function onQrTypeChange() {
+    const type = document.getElementById('qr-type').value;
+    document.getElementById('qr-fields').innerHTML = QR_FIELDS[type] || '';
+
+    // Mostrar nota si el tipo es WhatsApp
+    toggleWhatsAppNote(currentTab === 'qr' && type === 'whatsapp');
+
+    clearPreview();
+    generate();
+  }
+
+  // =============================================
+  //  CONSTRUIR STRING QR SEGÚN TIPO
+  // =============================================
+  function buildQrString() {
+    const type = document.getElementById('qr-type').value;
+    const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+    switch (type) {
+      case 'text':  return g('qr-text');
+      case 'url':   {
+        const u = g('qr-url');
+        if (!u) return '';
+        return u.startsWith('http') ? u : 'https://' + u;
+      }
+      case 'email': {
+        const to = g('qr-email');
+        if (!to) return '';
+        const sub = g('qr-email-sub');
+        return `mailto:${to}${sub ? '?subject=' + encodeURIComponent(sub) : ''}`;
+      }
+      case 'phone': {
+        const p = g('qr-phone');
+        if (!p) return '';
+        return `tel:${p}`;
+      }
+      case 'sms': {
+        const num = g('qr-sms-num');
+        if (!num) return '';
+        const msg = g('qr-sms-msg');
+        return `smsto:${num}${msg ? ':' + msg : ''}`;
+      }
+      case 'wifi': {
+        const ssid = g('qr-wifi-ssid');
+        const sec  = g('qr-wifi-sec');
+        const pass = g('qr-wifi-pass');
+        if (!ssid) return '';
+        return `WIFI:T:${sec};S:${ssid};P:${pass};;`;
+      }
+      case 'vcard': {
+        const name = g('qr-vc-name');
+        const last = g('qr-vc-last');
+        const tel  = g('qr-vc-phone');
+        const em   = g('qr-vc-email');
+        const org  = g('qr-vc-org');
+        if (!name && !last && !tel && !em && !org) return '';
+        return `BEGIN:VCARD\nVERSION:3.0\nN:${last};${name}\nFN:${name} ${last}\nTEL:${tel}\nEMAIL:${em}\nORG:${org}\nEND:VCARD`;
+      }
+      case 'whatsapp': {
+        const ccRaw  = g('qr-wa-cc');
+        const numRaw = g('qr-wa-num');
+        const cc  = ccRaw.replace(/[^0-9]/g, '');
+        const num = numRaw.replace(/[^0-9]/g, '');
+        const msg = g('qr-wa-msg');
+        if (!cc || !num) return '';
+        const phone = cc + num;
+        const encodedMsg = msg ? ('?text=' + encodeURIComponent(msg)) : '';
+        return `https://wa.me/${phone}${encodedMsg}`;
+      }
+default: return '';
+    }
+  }
+
+  // =============================================
+  //  LOGO
+  // =============================================
+  function onLogoChange() {
+    const file = document.getElementById('logo-input').files[0];
+    if (!file) {
+      logoDataURL = null;
+      const lbl = document.getElementById('logo-label');
+      if (lbl) lbl.textContent='📎 Subir logo';
+      generate();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      logoDataURL = e.target.result;
+      document.getElementById('logo-label').textContent = '✅ ' + file.name.substring(0, 18);
+      // Forzar nivel H cuando hay logo
+      document.getElementById('qr-ecl').value = 'H';
+      setAlert('⚠️ Corrección de error elevada a H automáticamente por el logo.', 'warn');
+      generate();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // =============================================
+  //  UTILIDADES UI
+  // =============================================
+  function onSizeChange() {
+    const val = document.getElementById('size').value;
+    document.getElementById('size-val').textContent = val;
+    generate();
+  }
+
+  // Sincronizar etiquetas hex de colores
+  document.getElementById('color-fg').addEventListener('input', e => {
+    document.getElementById('color-fg-hex').textContent = e.target.value;
+  });
+  document.getElementById('color-bg').addEventListener('input', e => {
+    document.getElementById('color-bg-hex').textContent = e.target.value;
+  });
+
+  function setAlert(msg, type) {
+    const el = document.getElementById('alert-msg');
+    el.textContent = msg || '';
+    el.style.color = type === 'error' ? '#C81D25' : type === 'warn' ? '#0B1E2E' : '#8FE3A1';
+    if (type === 'warn') {
+      el.style.background = 'rgba(241,243,245,.86)';
+      el.style.borderRadius = '12px';
+      el.style.padding = '.45rem .6rem';
+    } else {
+      el.style.background = 'transparent';
+      el.style.padding = '0';
+    }
+  }
+
+  function clearAlert() {
+    const el = document.getElementById('alert-msg');
+    el.textContent = '';
+    el.style.background = 'transparent';
+    el.style.padding = '0';
+  }
+
+  function clearPreview() {
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'block';
+    document.getElementById('btn-png').disabled = true;
+    document.getElementById('btn-svg').disabled = true;
+    qrInstance = null;
+  }
+
+  // =============================================
+  //  GENERACIÓN PRINCIPAL
+  // =============================================
+  let debounceTimer = null;
+
+  function generate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(_generate, 120);
+  }
+
+  function _generate() {
+    clearAlert();
+    if (currentTab === 'qr') {
+      // Mantener nota WhatsApp visible solo cuando corresponde
+      const t = document.getElementById('qr-type').value;
+      toggleWhatsAppNote(t === 'whatsapp');
+      generateQR();
+    } else {
+      toggleWhatsAppNote(false);
+      generateBarcode();
+    }
+  }
+
+  // ─── GENERAR QR ───
+  function generateQR() {
+    const data = buildQrString();
+    if (!data) { clearPreview(); return; }
+
+    const size  = parseInt(document.getElementById('size').value);
+    const fg    = document.getElementById('color-fg').value;
+    const bg    = document.getElementById('color-bg').value;
+    const eclVal= document.getElementById('qr-ecl').value;
+
+    const eclMap = { L: QRCode.CorrectLevel.L, M: QRCode.CorrectLevel.M,
+                     Q: QRCode.CorrectLevel.Q, H: QRCode.CorrectLevel.H };
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      qrInstance = new QRCode(container, {
+        text:           data,
+        width:          size,
+        height:         size,
+        colorDark:      fg,
+        colorLight:     bg,
+        correctLevel:   eclMap[eclVal]
+      });
+
+      // Superponer logo si existe
+      if (logoDataURL) {
+        setTimeout(() => overlayLogo(container, size, logoDataURL), 120);
+      } else {
+        enableDownloads();
+      }
+
+    } catch (err) {
+      setAlert('❌ Error al generar el QR. Revisa los datos.', 'error');
+      clearPreview();
+    }
+  }
+
+  function overlayLogo(container, size, logoSrc) {
+    const canvas = container.querySelector('canvas');
+    if (!canvas) { enableDownloads(); return; }
+
+    const ctx   = canvas.getContext('2d');
+    const img   = new Image();
+    img.onload  = () => {
+      const logoSize  = size * 0.22;
+      const logoX     = (size - logoSize) / 2;
+      const logoY     = (size - logoSize) / 2;
+      const pad       = 7;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.roundRect(logoX - pad, logoY - pad, logoSize + pad*2, logoSize + pad*2, 10);
+      ctx.fill();
+
+      ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+      enableDownloads();
+    };
+    img.src = logoSrc;
+  }
+
+  // ─── GENERAR CÓDIGO DE BARRAS ───
+  function generateBarcode() {
+    const data = document.getElementById('bar-data').value.trim();
+    const type = document.getElementById('bar-type').value;
+    if (!data) { clearPreview(); return; }
+
+    const fg   = document.getElementById('color-fg').value;
+    const bg   = document.getElementById('color-bg').value;
+    const size = parseInt(document.getElementById('size').value);
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = `<svg id="barcode-svg"></svg>`;
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      JsBarcode('#barcode-svg', data, {
+        format:      type,
+        lineColor:   fg,
+        background:  bg,
+        width:       Math.max(1, Math.round(size / 140)),
+        height:      Math.round(size * 0.42),
+        fontSize:    Math.round(size * 0.06),
+        margin:      14,
+        valid: valid => {
+          if (!valid) {
+            setAlert('❌ Datos inválidos para el tipo de código seleccionado.', 'error');
+            clearPreview();
+          }
+        }
+      });
+      enableDownloads();
+    } catch (err) {
+      setAlert('❌ ' + err.message, 'error');
+      clearPreview();
+    }
+  }
+
+  // =============================================
+  //  HABILITAR DESCARGAS
+  // =============================================
+  function enableDownloads() {
+    document.getElementById('btn-png').disabled = false;
+    document.getElementById('btn-svg').disabled = false;
+  }
+
+  // =============================================
+  //  DESCARGAS
+  // =============================================
+  function downloadPNG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = 'codigo-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } else {
+      const svg = document.getElementById('barcode-svg');
+      if (!svg) return;
+      svgToCanvas(svg, canvas => {
+        const link = document.createElement('a');
+        link.download = 'codigo-barras.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  }
+
+  function downloadSVG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const size = canvas.width;
+      const dataURL = canvas.toDataURL('image/png');
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+        <image href="${dataURL}" width="${size}" height="${size}"/>
+      </svg>`;
+      downloadBlob(svgStr, 'codigo-qr.svg', 'image/svg+xml');
+    } else {
+      const svgEl = document.getElementById('barcode-svg');
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgEl);
+      downloadBlob(svgStr, 'codigo-barras.svg', 'image/svg+xml');
+    }
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function svgToCanvas(svgEl, callback) {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svgEl);
+    const img = new Image();
+    const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width || 520;
+      canvas.height = img.height || 260;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = document.getElementById('color-bg').value;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      callback(canvas);
+    };
+
+    img.src = url;
+  }
+
+  // INIT
+  onQrTypeChange();
+  </script>

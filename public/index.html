@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="dark" />
+  <title>Generador de códigos QR y de barras gratis | NexbarQR</title>
+  <meta name="description" content="Crea, personaliza y descarga códigos QR y códigos de barras gratis en PNG o SVG. Sin registro ni anuncios: tus datos se procesan localmente en tu navegador." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://nexbarqr.web.app/" />
+  <meta name="theme-color" content="#0A0A0B" />
+
+  <meta name="application-name" content="NexbarQR" />
+  <meta name="apple-mobile-web-app-title" content="NexbarQR" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_CO" />
+  <meta property="og:site_name" content="NexbarQR" />
+  <meta property="og:title" content="Generador de códigos QR y de barras gratis | NexbarQR" />
+  <meta property="og:description" content="Crea, personaliza y descarga códigos QR y de barras sin registro. Todo se procesa en tu navegador." />
+  <meta property="og:url" content="https://nexbarqr.web.app/" />
+  <meta property="og:image" content="https://nexbarqr.web.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="1200" />
+  <meta property="og:image:alt" content="Ilustración de NexbarQR con un código QR en azul marino y rojo" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Generador de códigos QR y de barras gratis | NexbarQR" />
+  <meta name="twitter:description" content="Crea, personaliza y descarga códigos QR y de barras sin registro." />
+  <meta name="twitter:image" content="https://nexbarqr.web.app/og-image.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Tipografías DarkFrame (CDN gratuito, display=swap, con fallback a sistema) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"NexbarQR","url":"https://nexbarqr.web.app/","description":"Generador gratuito de códigos QR y códigos de barras que procesa los datos localmente en el navegador.","applicationCategory":"UtilitiesApplication","operatingSystem":"Cualquier sistema con navegador web","browserRequirements":"JavaScript habilitado","isAccessibleForFree":true,"inLanguage":"es"}
+  </script>
+
+  <style>
+    /* =====================================================
+       DARKFRAME DESIGN SYSTEM · v3 «Consola»
+       Paleta oficial (extraída del kit de marca):
+         · Grises neutros profundos  #121212 / #212121
+         · Acento azul en degradado  #2052BD → #7CACF8
+         · Texto claro               #E0E0E0
+       Arquitectura de herramienta profesional:
+         barra de app fija + pestañas subrayadas + paneles
+         sólidos + escenario de vista previa oscuro.
+       ===================================================== */
+
+    /* ===== RESET & TOKENS ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Superficies neutras (kit DarkFrame) */
+      --bg: #0A0A0B;
+      --bar: #0A0A0B;
+      --panel: #1E2024;
+      --panel-2: #26282E;
+      --stage: #0D0E10;
+
+      /* Líneas */
+      --line: rgba(237, 235, 221, .10);
+      --line-2: rgba(237, 235, 221, .16);
+
+      /* Texto */
+      --text: #EDEBDD;
+      --text-2: #A8A497;
+      --text-3: #6E6E73;
+
+      /* Acento azul DarkFrame */
+      --blue: #D90429;
+      --blue-hi: #FF2D4D;
+      --blue-deep: #D01B23;
+      --blue-soft: rgba(217, 4, 41, .12);
+      --blue-line: rgba(217, 4, 41, .45);
+      --grad: linear-gradient(135deg, #D01B23 0%, #E52231 100%);
+
+      /* Estados */
+      --ok: #7ED957;
+      --warn: #FBBF24;
+      --err: #FF2D4D;
+      --wa: #25D366;
+
+      /* Tipografía */
+      --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "Courier New", monospace;
+
+      /* Formas */
+      --r: 12px;
+      --r-sm: 9px;
+
+      --shadow-lg: 0 24px 60px rgba(0, 0, 0, .5);
+      --focus: 0 0 0 3px rgba(217, 4, 41, .40);
+
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    ::selection { background: rgba(217, 4, 41, .35); color: #FFF3F4; }
+
+    .skip-link { position: fixed; top: .75rem; left: .75rem; z-index: 100; padding: .7rem 1rem; border-radius: var(--r-sm); background: var(--text); color: var(--bg); font-weight: 700; transform: translateY(-160%); transition: transform .18s var(--ease); }
+    .skip-link:focus { transform: translateY(0); outline: 3px solid var(--blue); outline-offset: 2px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #630000; border-radius: 99px; border: 2px solid var(--bg); }
+    ::-webkit-scrollbar-thumb:hover { background: #7A0008; }
+
+    /* ===== FONDO: estático y sobrio (rejilla fina + brillo superior) ===== */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(820px 420px at 50% -12%, rgba(208, 27, 35, .14), transparent 65%),
+        radial-gradient(rgba(237, 235, 221, .07) 1px, transparent 1.4px);
+      background-size: auto, 26px 26px;
+      mask-image: linear-gradient(180deg, black 0%, black 62%, transparent 100%);
+      -webkit-mask-image: linear-gradient(180deg, black 0%, black 62%, transparent 100%);
+    }
+
+    /* ===== BARRA DE APLICACIÓN ===== */
+    .appbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(10, 10, 11, .92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .appbar-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: .8rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+
+    .brand-mark { width: 30px; height: 30px; flex: none; display: grid; place-items: center; }
+
+    .brand-mark svg { width: 30px; height: 30px; display: block; filter: none; }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.06rem;
+      letter-spacing: -.01em;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+
+    .brand-sep { width: 1px; height: 18px; background: var(--line-2); flex: none; }
+
+    .brand-by { font-size: .76rem; color: var(--text-3); letter-spacing: .02em; white-space: nowrap; }
+
+    .appbar-meta { margin-left: auto; display: flex; align-items: center; gap: .45rem; }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      border: 1px solid var(--line-2);
+      border-radius: 6px;
+      padding: .34rem .55rem;
+      background: transparent;
+      white-space: nowrap;
+    }
+
+    .chip-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      border-color: var(--blue-line);
+      color: #F3D6D9;
+      background: var(--blue-soft);
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 99px;
+      background: var(--blue);
+      box-shadow: 0 0 8px rgba(217, 4, 41, .9);
+      animation: pulse 2.4s var(--ease) infinite;
+      flex: none;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+    /* ===== HERO / TÍTULOS DE PORTADA (jerarquía del kit, cap. 4.2) ===== */
+    .hero {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 2.6rem 1.25rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+    }
+    .hero-kicker {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      color: var(--blue-deep);          /* cherry, tag terminal */
+      text-transform: lowercase;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(2.5rem, 5vw, 3.4rem);  /* H1 Hero kit: 48–76px */
+      line-height: 1.0;
+      letter-spacing: -.025em;
+      color: var(--text);               /* marfil */
+      margin: 0;
+    }
+    .hero-title .grad {
+      background: linear-gradient(135deg, #D01B23 0%, #FF2D4D 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;               /* acento cherry, único por bloque */
+    }
+    .hero-sub {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 1.02rem;
+      line-height: 1.55;
+      color: var(--text-2);             /* marfil atenuado */
+      max-width: 54ch;
+      margin: 0;
+    }
+    .hero-sub strong { font-weight: 600; color: var(--text); }
+
+    /* ===== ÁREA DE TRABAJO ===== */
+    .workspace {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 2rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      animation: enter 500ms var(--ease) both;
+    }
+
+    /* Barra de herramientas: pestañas + indicadores */
+    .toolbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 1.4rem;
+    }
+
+    .toolbar-meta { display: flex; align-items: center; gap: .8rem; padding-bottom: .7rem; }
+
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-family: var(--font-mono);
+      font-size: .66rem;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 99px;
+      background: var(--blue);
+      box-shadow: 0 0 0 3px rgba(217, 4, 41, .16);
+      animation: pulse 2.2s var(--ease) infinite;
+      flex: none;
+    }
+
+    .mono-tag {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .14em;
+      color: var(--text-3);
+      border: 1px solid var(--line);
+      padding: .3rem .55rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    /* Pestañas subrayadas (estilo consola) */
+    .tabs { display: inline-flex; gap: .25rem; }
+
+    .tab-btn {
+      appearance: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .8rem 1rem .95rem;
+      color: var(--text-2);
+      font-family: var(--font-body);
+      font-size: .9rem;
+      font-weight: 600;
+      letter-spacing: .01em;
+      transition: color .18s var(--ease);
+      white-space: nowrap;
+    }
+
+    .tab-btn svg { width: 16px; height: 16px; opacity: .8; transition: color .18s var(--ease), opacity .18s var(--ease); }
+
+    .tab-btn::after {
+      content: "";
+      position: absolute;
+      left: .85rem;
+      right: .85rem;
+      bottom: -1px;
+      height: 2px;
+      border-radius: 2px;
+      background: transparent;
+      transition: background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn:focus-visible { outline: none; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--blue-line); }
+
+    .tab-btn.active { color: #FFFFFF; }
+    .tab-btn.active svg { color: var(--blue); opacity: 1; }
+    .tab-btn.active::after { background: var(--blue); box-shadow: 0 2px 14px rgba(217, 4, 41, .6); }
+
+    /* Cuadrícula de trabajo: panel de configuración + escenario */
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 432px) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      animation: enter 550ms var(--ease) both;
+      animation-delay: 60ms;
+    }
+
+    /* Encabezado de paso numerado */
+    .step { display: flex; align-items: center; gap: .6rem; }
+
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: .64rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--blue);
+      background: var(--blue-soft);
+      border: 1px solid var(--blue-line);
+      border-radius: 6px;
+      padding: .18rem .45rem;
+      flex: none;
+    }
+
+    .step-title {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .step::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+    /* ===== FORMULARIOS ===== */
+    .section { display: flex; flex-direction: column; gap: .25rem; }
+
+    label, .field-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 0.35rem;
+      display: block;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    select, input[type="text"], input[type="url"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], textarea {
+      width: 100%;
+      padding: 0.72rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: #141519;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+    }
+
+    textarea { resize: vertical; min-height: 92px; line-height: 1.5; }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 2.4rem;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23A8A497' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .95rem center;
+    }
+
+    select option { background: #1E2024; color: var(--text); }
+
+    select:hover, input[type="text"]:hover, input[type="url"]:hover, input[type="number"]:hover, input[type="password"]:hover, textarea:hover { border-color: var(--line-2); }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--blue-line);
+      box-shadow: var(--focus);
+      background: #17181D;
+    }
+
+    input::placeholder, textarea::placeholder { color: #7A7A80; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+
+    /* ===== SELECTORES DE COLOR ===== */
+    .color-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: .35rem .5rem .35rem .4rem;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: #141519;
+      transition: border-color .18s var(--ease);
+    }
+
+    .color-group:focus-within { border-color: var(--blue-line); }
+
+    input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      flex: none;
+      transition: transform .18s var(--ease), border-color .18s var(--ease);
+    }
+
+    input[type="color"]:hover { transform: translateY(-1px); border-color: var(--blue-line); }
+
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+    input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
+
+    #color-fg-hex, #color-bg-hex {
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      color: #B7BBC3;
+      letter-spacing: .02em;
+    }
+
+    /* ===== SLIDER ===== */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 26px;
+      background: transparent;
+      cursor: pointer;
+      --fill: 29%;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue-deep) 0%, var(--blue) var(--fill), rgba(255,255,255,.1) var(--fill));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 17px; height: 17px;
+      margin-top: -6px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 3px solid #101114;
+      box-shadow: 0 0 0 1.5px var(--blue-line), 0 4px 12px rgba(0,0,0,.5);
+      transition: transform .15s var(--ease);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    input[type="range"]::-moz-range-track { height: 5px; border-radius: 99px; background: rgba(255,255,255,.1); }
+    input[type="range"]::-moz-range-progress { height: 5px; border-radius: 99px; background: linear-gradient(90deg, var(--blue-deep), var(--blue)); }
+    input[type="range"]::-moz-range-thumb {
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 3px solid #101114;
+      box-shadow: 0 0 0 1.5px var(--blue-line), 0 4px 12px rgba(0,0,0,.5);
+    }
+
+    /* ===== SUBIDA DE ARCHIVO ===== */
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      padding: 0.70rem 0.85rem;
+      border: 1px dashed rgba(255,255,255,.22);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--text-2);
+      background: #141519;
+      transition: border-color .18s var(--ease), transform .18s var(--ease), background .18s var(--ease), color .18s var(--ease);
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .file-label:hover {
+      border-color: var(--blue-line);
+      color: var(--text);
+      transform: translateY(-1px);
+      background: var(--blue-soft);
+    }
+
+    #logo-input { display: none; }
+
+    /* ===== AYUDAS ===== */
+    .hint { font-size: .8rem; color: var(--text-3); line-height: 1.45; }
+
+    /* Nota informativa WhatsApp */
+    .wa-note {
+      font-size: .84rem;
+      color: #DDF5E4;
+      background: rgba(74, 222, 128, .07);
+      border: 1px solid rgba(74, 222, 128, .26);
+      border-radius: var(--r-sm);
+      padding: .7rem .8rem;
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+      animation: enter 520ms var(--ease) both;
+    }
+
+    .wa-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--wa);
+      margin-top: .3rem;
+      flex: none;
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, .14), 0 0 12px rgba(74, 222, 128, .55);
+    }
+
+    /* ===== ALERTAS ===== */
+    #alert-msg {
+      font-size: 0.86rem;
+      font-weight: 500;
+      min-height: 1.2rem;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      transition: color .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+    }
+
+    /* ===== ESCENARIO DE VISTA PREVIA ===== */
+    .preview-col {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+      animation: enter 600ms var(--ease) both;
+      animation-delay: 120ms;
+    }
+
+    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
+
+    .preview-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+    }
+
+    .preview-title::before {
+      content: "";
+      width: 7px; height: 7px;
+      border-radius: 2px;
+      background: var(--grad);
+      box-shadow: 0 0 10px rgba(208, 27, 35, .7);
+      flex: none;
+    }
+
+    .preview-head .hint {
+      font-family: var(--font-mono);
+      font-size: .64rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .preview-box {
+      position: relative;
+      background:
+        radial-gradient(rgba(255, 255, 255, .045) 1px, transparent 1.4px),
+        var(--stage);
+      background-size: 22px 22px, auto;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      min-height: 430px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03), var(--shadow-lg);
+      transform: translateZ(0);
+      overflow: hidden;
+    }
+
+    /* Esquinas de visor DarkFrame */
+    .corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 0 solid #D01B23;
+      opacity: .75;
+      pointer-events: none;
+      z-index: 3;
+      transition: opacity .3s var(--ease);
+    }
+
+    .corner.c1 { top: 11px;    left: 11px;  border-top-width: 2px;    border-left-width: 2px;    border-top-left-radius: 6px; }
+    .corner.c2 { top: 11px;    right: 11px; border-top-width: 2px;    border-right-width: 2px;   border-top-right-radius: 6px; }
+    .corner.c3 { bottom: 11px; left: 11px;  border-bottom-width: 2px; border-left-width: 2px;    border-bottom-left-radius: 6px; }
+    .corner.c4 { bottom: 11px; right: 11px; border-bottom-width: 2px; border-right-width: 2px;   border-bottom-right-radius: 6px; }
+
+    /* Barrido de escáner al aparecer un código */
+    .preview-box::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      top: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(208, 27, 35, .95), rgba(255, 45, 77, .95), transparent);
+      box-shadow: 0 0 16px rgba(217, 4, 41, .8);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .preview-box.scan::after { animation: sweep .85s var(--ease) both; }
+    .preview-box.scan .corner { opacity: 1; animation: cornerPop .5s var(--ease) both; }
+
+    @keyframes sweep {
+      0%   { top: 3%;  opacity: 0; }
+      12%  { opacity: 1; }
+      88%  { opacity: 1; }
+      100% { top: 97%; opacity: 0; }
+    }
+
+    @keyframes cornerPop {
+      0% { transform: scale(.6); }
+      60% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    #preview-placeholder {
+      color: rgba(233, 234, 238, .45);
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    #preview-placeholder svg { width: 56px; height: 56px; opacity: .6; display: block; margin: 0 auto .7rem; }
+
+    /* Código generado (qrcodejs crea una imagen visible y un canvas;
+       el canvas oculto es el que usan las descargas, siempre a tamaño completo) */
+    #preview-container img, #preview-container canvas, #preview-container svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .07);
+    }
+
+    /* ===== BOTONES DE DESCARGA ===== */
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      padding: 0.82rem 0.9rem;
+      border: 1px solid var(--line-2);
+      border-radius: var(--r-sm);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s var(--ease), opacity .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 17px; height: 17px; flex: none; }
+    .btn:focus-visible { outline: none; box-shadow: var(--focus); }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-png {
+      background: var(--grad);
+      border-color: rgba(208, 27, 35, .55);
+      color: #FFFFFF;
+      box-shadow: 0 10px 26px rgba(208, 27, 35, .30);
+    }
+
+    .btn-png:hover { filter: brightness(1.1); box-shadow: 0 14px 34px rgba(208, 27, 35, .45); }
+
+    .btn-svg { background: transparent; color: var(--text-2); }
+    .btn-svg:hover { border-color: var(--blue-line); color: var(--text); background: var(--blue-soft); }
+
+    /* Destello del botón primario */
+    .btn-png::after {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+      transform: rotate(25deg) translateX(-60%);
+      opacity: 0;
+      transition: opacity .18s var(--ease);
+      pointer-events: none;
+    }
+
+    .btn-png:hover::after { opacity: .7; animation: btnSheen 1.1s var(--ease) both; }
+
+    @keyframes btnSheen {
+      from { transform: rotate(25deg) translateX(-60%); }
+      to   { transform: rotate(25deg) translateX(60%); }
+    }
+
+    /* ===== ANIMACIÓN DE ENTRADA ===== */
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== PIE ===== */
+    .site-footer {
+      margin-top: 1.75rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .8rem;
+      flex-wrap: wrap;
+      font-size: .8rem;
+      color: var(--text-3);
+      animation: enter 600ms var(--ease) both;
+      animation-delay: 160ms;
+    }
+
+    .site-footer strong { color: var(--text-2); font-weight: 600; }
+
+    .site-footer .foot-meta { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; }
+
+    .info-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+    .info-section h2 { max-width: 22ch; font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 1.8rem); line-height: 1.15; letter-spacing: -.02em; }
+    .info-intro { max-width: 68ch; margin-top: .6rem; color: var(--text-2); line-height: 1.65; }
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.2rem; }
+    .info-card { padding: 1rem; border: 1px solid var(--line); border-radius: var(--r); background: rgba(30, 32, 36, .72); }
+    .info-card h3 { font-family: var(--font-display); font-size: 1rem; color: var(--text); }
+    .info-card p { margin-top: .45rem; color: var(--text-2); font-size: .9rem; line-height: 1.6; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .preview-box { min-height: 360px; }
+    }
+
+    @media (max-width: 640px) {
+      .workspace { padding: 1.1rem 1rem 1.6rem; }
+
+      .hero { padding: 1.8rem 1rem .6rem; gap: .55rem; }
+      .hero-sub { font-size: .95rem; }
+
+      .appbar-inner { padding: .7rem 1rem; }
+      .appbar-meta .chip:not(.chip-status) { display: none; }
+
+      .toolbar { align-items: stretch; }
+      .tabs { width: 100%; }
+      .tab-btn { flex: 1; justify-content: center; padding: .75rem .5rem .85rem; font-size: .84rem; }
+      .toolbar-meta { display: none; }
+
+      /* Evita el zoom automático de iOS al enfocar campos */
+      select, input[type="text"], input[type="url"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"], textarea { font-size: 16px; }
+
+      .row, .btn-group { grid-template-columns: 1fr; }
+      .preview-box { min-height: 300px; padding: 1.4rem; }
+      .site-footer { flex-direction: column; align-items: flex-start; gap: .4rem; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 380px) {
+      .brand-by, .brand-sep { display: none; }
+      .panel { padding: 1rem; }
+      .btn { font-size: .86rem; padding: .78rem .6rem; }
+    }
+
+    /* ===== MOVIMIENTO REDUCIDO ===== */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+      .preview-box.scan::after, .status-dot, .live-dot { animation: none !important; }
+    }
+
+    /* ===== HELPERS ===== */
+    .hidden { display: none !important; }
+
+    /* ===== WHATSAPP: INDICATIVO + NÚMERO UNIDOS ===== */
+    .wa-phone {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 0;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #141519;
+      transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+    }
+
+    .wa-phone:focus-within {
+      border-color: var(--blue-line);
+      box-shadow: var(--focus);
+      background: #17181D;
+    }
+
+    .wa-phone .wa-prefix {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      padding: 0 .7rem;
+      border-right: 1px solid var(--line);
+      color: #B7BBC3;
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .wa-phone input {
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0.72rem 0.85rem !important;
+      outline: none !important;
+      color: var(--text);
+    }
+
+    .wa-phone input::placeholder { color: var(--text-3); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al generador</a>
+  <!-- Fondo estático: rejilla fina + brillo superior -->
+  <div class="bg" aria-hidden="true"></div>
+
+  <!-- Barra de aplicación -->
+  <header class="appbar">
+    <div class="appbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+            <img src="/icon-192.png" alt="Símbolo de NexbarQR" width="30" height="30" />
+        </span>
+        <span class="brand-name">NexbarQR</span>
+        <span class="brand-sep" aria-hidden="true"></span>
+        <span class="brand-by">by DarkFrame</span>
+      </div>
+      <div class="appbar-meta" aria-label="Características del servicio">
+        <span class="chip">Gratis</span>
+        <span class="chip">Sin registro</span>
+        <span class="chip chip-status"><span class="status-dot" aria-hidden="true"></span>100% local</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero: títulos de portada (jerarquía H1 del kit, cap. 4.2) -->
+  <section class="hero" aria-labelledby="hero-title">
+    <span class="hero-kicker" aria-hidden="true">// generador_de_códigos</span>
+    <h1 id="hero-title" class="hero-title">Crea códigos <span class="grad">QR y de barras</span> gratis</h1>
+    <p class="hero-sub">Personaliza tu código y descárgalo en PNG o SVG, sin registro. <strong>Tus datos se procesan únicamente en tu navegador.</strong></p>
+  </section>
+
+  <!-- Área de trabajo -->
+  <main class="workspace" id="main">
+
+    <!-- Barra de herramientas -->
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="Tipo de código">
+        <button type="button" id="tab-qr" class="tab-btn active" onclick="switchTab('qr', this)" role="tab" aria-selected="true" aria-controls="section-qr" tabindex="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M14 14h3.2v3.2H14z"/><path d="M20.6 14.6v0M17.4 17.4v0M20.6 20.6v0M14 20.6v0"/></svg>
+          Código QR
+        </button>
+        <button type="button" id="tab-bar" class="tab-btn" onclick="switchTab('bar', this)" role="tab" aria-selected="false" aria-controls="section-bar" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v10M16 5v14M20 5v10"/></svg>
+          Código de barras
+        </button>
+      </div>
+      <div class="toolbar-meta" aria-hidden="true">
+        <span class="live"><span class="live-dot"></span>Tiempo real</span>
+        <span class="mono-tag">PNG · SVG</span>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Panel izquierdo: configuración -->
+      <section class="panel" aria-labelledby="config-title">
+        <h2 id="config-title" class="sr-only">Configura tu código</h2>
+
+        <div class="step"><span class="step-num">01</span><span class="step-title">Contenido</span></div>
+
+        <!-- Sección QR -->
+        <div id="section-qr" role="tabpanel" aria-labelledby="tab-qr">
+          <div class="section">
+            <label for="qr-type">Tipo de dato</label>
+            <select id="qr-type" onchange="onQrTypeChange()">
+              <option value="text">Texto libre</option>
+              <option value="url">URL</option>
+              <option value="email">Email</option>
+              <option value="phone">Teléfono</option>
+              <option value="sms">SMS</option>
+              <option value="wifi">Wi‑Fi</option>
+              <option value="vcard">Contacto (vCard)</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+
+          <div id="qr-fields"><!-- dinámico --></div>
+        </div>
+
+        <!-- Sección barras -->
+        <div id="section-bar" class="hidden" role="tabpanel" aria-labelledby="tab-bar" hidden>
+          <div class="section">
+            <label for="bar-type">Tipo de código</label>
+            <select id="bar-type" onchange="generate()">
+              <option value="CODE128">Code 128 (texto/números)</option>
+              <option value="EAN13">EAN‑13 (13 dígitos)</option>
+              <option value="UPC">UPC‑A (12 dígitos)</option>
+              <option value="CODE39">Code 39</option>
+              <option value="ITF14">ITF‑14</option>
+              <option value="MSI">MSI</option>
+            </select>
+          </div>
+
+          <div class="section">
+            <label for="bar-data">Datos a codificar</label>
+            <input type="text" id="bar-data" placeholder="Ej: 123456789012" oninput="generate()" />
+          </div>
+        </div>
+
+        <div class="step"><span class="step-num">02</span><span class="step-title">Personalización</span></div>
+
+        <!-- Personalización común -->
+        <div class="row">
+          <div class="section">
+            <label for="color-fg">Color del código</label>
+            <div class="color-group">
+              <input type="color" id="color-fg" value="#000000" oninput="generate()" aria-label="Color del código" />
+              <span id="color-fg-hex">#000000</span>
+            </div>
+          </div>
+          <div class="section">
+            <label for="color-bg">Color de fondo</label>
+            <div class="color-group">
+              <input type="color" id="color-bg" value="#ffffff" oninput="generate()" aria-label="Color de fondo" />
+              <span id="color-bg-hex">#ffffff</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <label for="size">Tamaño: <span id="size-val">300</span> px</label>
+          <input type="range" id="size" min="100" max="800" value="300" step="10" oninput="onSizeChange()" aria-label="Tamaño del código en píxeles" />
+        </div>
+
+        <!-- Opciones solo QR -->
+        <div id="qr-extra">
+          <div class="row">
+            <div class="section">
+              <label for="qr-ecl">Corrección de errores</label>
+              <select id="qr-ecl" onchange="generate()">
+                <option value="L">L – Baja (7%)</option>
+                <option value="M" selected>M – Media (15%)</option>
+                <option value="Q">Q – Alta (25%)</option>
+                <option value="H">H – Máxima (30%)</option>
+              </select>
+            </div>
+            <div class="section">
+              <span class="field-label">Logo (opcional)</span>
+              <label class="file-label" for="logo-input" id="logo-label">Subir logo</label>
+              <input type="file" id="logo-input" accept="image/*" onchange="onLogoChange()" />
+            </div>
+          </div>
+        </div>
+
+      </section><!-- /panel -->
+
+      <!-- Columna derecha: vista previa + descarga -->
+      <aside class="preview-col" aria-label="Vista previa y descarga">
+        <div class="preview-head">
+          <h2 class="preview-title">Vista previa</h2>
+          <div class="hint">Alta calidad</div>
+        </div>
+
+        <div id="alert-msg" role="status" aria-live="polite"></div>
+
+        <div class="preview-box" id="preview-box">
+          <div class="corner c1" aria-hidden="true"></div>
+          <div class="corner c2" aria-hidden="true"></div>
+          <div class="corner c3" aria-hidden="true"></div>
+          <div class="corner c4" aria-hidden="true"></div>
+          <div id="preview-container"></div>
+          <span id="preview-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6E6E73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><path d="M14 14h3.2v3.2H14z"/><path d="M20.6 14.6v0M20.6 20.6v0M14 20.6v0"/></svg>
+            Tu código aparecerá aquí
+          </span>
+        </div>
+
+        <!-- (1) Mensaje informativo para WhatsApp -->
+        <div id="wa-note" class="wa-note hidden">
+          <span class="wa-dot" aria-hidden="true"></span>
+          <div>
+            <div style="font-weight:900; margin-bottom:.15rem;">Este QR abrirá WhatsApp</div>
+            <div style="opacity:.9;">Se abrirá el chat con el número ingresado y el mensaje (si lo defines) quedará prellenado.</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-png" id="btn-png" onclick="downloadPNG()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4.5 20h15"/></svg>
+            Descargar PNG
+          </button>
+          <button type="button" class="btn btn-svg" id="btn-svg" onclick="downloadSVG()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4.5 20h15"/></svg>
+            Descargar SVG
+          </button>
+        </div>
+      </aside><!-- /preview-col -->
+
+    </div><!-- /grid -->
+
+    <section class="info-section" aria-labelledby="info-title">
+      <h2 id="info-title">Todo lo necesario para crear tu código</h2>
+      <p class="info-intro">NexbarQR reúne en una sola herramienta la generación, personalización y descarga de códigos QR y códigos de barras. Elige el tipo de contenido, ajusta su apariencia y comprueba el resultado antes de guardarlo. La vista previa se actualiza mientras escribes.</p>
+      <div class="info-grid">
+        <article class="info-card">
+          <h3>QR para distintos contenidos</h3>
+          <p>Crea códigos para enlaces, texto, correo, teléfono, SMS, redes Wi-Fi, contactos vCard o conversaciones de WhatsApp con mensaje opcional.</p>
+        </article>
+        <article class="info-card">
+          <h3>Datos dentro de tu navegador</h3>
+          <p>El contenido se procesa localmente mientras usas la herramienta. No necesitas crear una cuenta ni enviar la información a un servidor de NexbarQR.</p>
+        </article>
+        <article class="info-card">
+          <h3>Descargas listas para usar</h3>
+          <p>Define colores, tamaño y nivel de corrección; añade un logo cuando uses QR y descarga el resultado en PNG o SVG.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Pie institucional DarkFrame (presencia discreta, sin interferir con la herramienta) -->
+    <footer class="site-footer">
+      <span>NexbarQR · Generador gratuito creado por <strong>DarkFrame</strong></span>
+      <span class="foot-meta">Sin registro · Sin anuncios · Procesamiento local</span>
+    </footer>
+  </main>
+
+  <!-- Librerías (CDN). Si quieres 100% offline, descárgalas a /libs y cámbialas aquí. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <noscript>Necesitas activar JavaScript para generar y descargar códigos QR o de barras.</noscript>
+  <script>
+  // Polyfill: CanvasRenderingContext2D.roundRect (para navegadores que no lo soporten)
+  if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      const radius = typeof r === 'number' ? {tl:r,tr:r,br:r,bl:r} : (r || {tl:0,tr:0,br:0,bl:0});
+      this.beginPath();
+      this.moveTo(x + radius.tl, y);
+      this.lineTo(x + w - radius.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + radius.tr);
+      this.lineTo(x + w, y + h - radius.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - radius.br, y + h);
+      this.lineTo(x + radius.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - radius.bl);
+      this.lineTo(x, y + radius.tl);
+      this.quadraticCurveTo(x, y, x + radius.tl, y);
+      this.closePath();
+      return this;
+    }
+  }
+
+  // =============================================
+  //  ESTADO GLOBAL
+  // =============================================
+  let currentTab  = 'qr';    // 'qr' | 'bar'
+  let logoDataURL = null;
+  let qrInstance  = null;
+
+  // =============================================
+  //  TABS
+  // =============================================
+  function switchTab(tab, btn) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
+
+    const qrPanel = document.getElementById('section-qr');
+    const barPanel = document.getElementById('section-bar');
+    qrPanel.classList.toggle('hidden', tab !== 'qr');
+    barPanel.classList.toggle('hidden', tab !== 'bar');
+    qrPanel.hidden = tab !== 'qr';
+    barPanel.hidden = tab !== 'bar';
+    document.getElementById('qr-extra').classList.toggle('hidden', tab !== 'qr');
+
+    // Ocultar nota WhatsApp si no aplica
+    toggleWhatsAppNote(false);
+
+    clearPreview();
+    generate();
+  }
+
+  document.querySelector('.tabs').addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const tabs = [...document.querySelectorAll('.tab-btn')];
+    const currentIndex = tabs.indexOf(document.activeElement);
+    let nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    switchTab(nextTab.id === 'tab-qr' ? 'qr' : 'bar', nextTab);
+    nextTab.focus();
+  });
+
+  // =============================================
+  //  CAMPOS DINÁMICOS SEGÚN TIPO QR
+  // =============================================
+  const QR_FIELDS = {
+    text:  `<div class="section"><label for="qr-text">Texto</label>
+            <textarea id="qr-text" rows="3" placeholder="Escribe tu texto aquí..." oninput="generate()"></textarea></div>`,
+
+    url:   `<div class="section"><label for="qr-url">URL</label>
+            <input type="url" id="qr-url" placeholder="https://ejemplo.com" inputmode="url" autocomplete="url" oninput="generate()" /></div>`,
+
+    email: `<div class="section"><label for="qr-email">Correo electrónico</label>
+            <input type="email" id="qr-email" placeholder="correo@ejemplo.com" autocomplete="email" oninput="generate()" />
+            <label for="qr-email-sub" style="margin-top:0.5rem">Asunto (opcional)</label>
+            <input type="text" id="qr-email-sub" placeholder="Asunto del mensaje" oninput="generate()" /></div>`,
+
+    phone: `<div class="section"><label for="qr-phone">Número de teléfono</label>
+            <input type="tel" id="qr-phone" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" /></div>`,
+
+    sms:   `<div class="section"><label for="qr-sms-num">Número de teléfono</label>
+            <input type="tel" id="qr-sms-num" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" />
+            <label for="qr-sms-msg" style="margin-top:0.5rem">Mensaje (opcional)</label>
+            <input type="text" id="qr-sms-msg" placeholder="Hola, te escribo por..." oninput="generate()" /></div>`,
+
+    wifi:  `<div class="section"><label for="qr-wifi-ssid">Nombre de red (SSID)</label>
+            <input type="text" id="qr-wifi-ssid" placeholder="Mi Red WiFi" oninput="generate()" />
+            <label for="qr-wifi-pass" style="margin-top:0.5rem">Contraseña</label>
+            <input type="password" id="qr-wifi-pass" placeholder="Contraseña" oninput="generate()" />
+            <label for="qr-wifi-sec" style="margin-top:0.5rem">Seguridad</label>
+            <select id="qr-wifi-sec" onchange="generate()">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Sin contraseña</option>
+            </select></div>`,
+
+    vcard: `<div class="section">
+              <div class="row">
+                <div><label for="qr-vc-name">Nombre</label><input type="text" id="qr-vc-name" placeholder="Juan" autocomplete="given-name" oninput="generate()" /></div>
+                <div><label for="qr-vc-last">Apellido</label><input type="text" id="qr-vc-last" placeholder="Pérez" autocomplete="family-name" oninput="generate()" /></div>
+              </div>
+              <label for="qr-vc-phone" style="margin-top:0.5rem">Teléfono</label>
+              <input type="tel" id="qr-vc-phone" placeholder="+57 300 000 0000" autocomplete="tel" oninput="generate()" />
+              <label for="qr-vc-email" style="margin-top:0.5rem">Email</label>
+              <input type="email" id="qr-vc-email" placeholder="correo@ejemplo.com" autocomplete="email" oninput="generate()" />
+              <label for="qr-vc-org" style="margin-top:0.5rem">Empresa (opcional)</label>
+              <input type="text" id="qr-vc-org" placeholder="Mi Empresa" oninput="generate()" />
+            </div>`,
+
+    /* (2) WhatsApp: el usuario ingresa el indicativo del país; NO se autocompleta */
+    whatsapp: `<div class="section">
+  <span class="field-label">Número de WhatsApp</span>
+  <div class="wa-phone">
+    <div class="wa-prefix">
+      <span>+</span>
+      <input type="text" id="qr-wa-cc" placeholder="57" oninput="generate()" aria-label="Indicativo del país" />
+    </div>
+    <input type="text" id="qr-wa-num" placeholder="3001234567" oninput="generate()" aria-label="Número de WhatsApp" />
+  </div>
+  <div class="hint">Indicativo y número quedan separados internamente. Se limpiarán espacios, guiones y símbolos automáticamente.</div>
+  <label for="qr-wa-preset" style="margin-top:0.6rem">Preset de mensaje</label>
+  <select id="qr-wa-preset" onchange="applyWAPreset()">
+    <option value="">— Selecciona un preset —</option>
+    <option value="ventas">Ventas / Cotización</option>
+    <option value="soporte">Soporte técnico</option>
+    <option value="reunion">Agendar reunión</option>
+    <option value="pqr">PQR / Reclamación</option>
+    <option value="custom">Personalizado</option>
+  </select>
+  <label for="qr-wa-msg" style="margin-top:0.6rem">Mensaje (opcional)</label>
+  <textarea id="qr-wa-msg" placeholder="Hola, quiero más información…" rows="3" oninput="generate()"></textarea>
+</div>`
+  };
+
+  const WA_PRESETS = {
+    ventas:  'Hola 👋, estoy interesado en una cotización. ¿Me puedes compartir información y precios?',
+    soporte: 'Hola 👋, necesito soporte técnico. ¿Me pueden ayudar por favor?',
+    reunion: 'Hola 👋, ¿podemos agendar una reunión? Indícame disponibilidad y un enlace de calendario si tienes.',
+    pqr:     'Hola, deseo radicar una PQR. Por favor indícame el proceso y el número de caso.'
+  };
+
+  function applyWAPreset() {
+    const sel = document.getElementById('qr-wa-preset');
+    const msg = document.getElementById('qr-wa-msg');
+    if (!sel || !msg) return;
+
+    const key = sel.value;
+    if (!key || key === 'custom') return; // no cambia
+
+    msg.value = WA_PRESETS[key] || '';
+    generate();
+  }
+
+  function toggleWhatsAppNote(force) {
+    const note = document.getElementById('wa-note');
+    if (!note) return;
+    note.classList.toggle('hidden', !force);
+  }
+
+  function onQrTypeChange() {
+    const type = document.getElementById('qr-type').value;
+    document.getElementById('qr-fields').innerHTML = QR_FIELDS[type] || '';
+
+    // Mostrar nota si el tipo es WhatsApp
+    toggleWhatsAppNote(currentTab === 'qr' && type === 'whatsapp');
+
+    clearPreview();
+    generate();
+  }
+
+  // =============================================
+  //  CONSTRUIR STRING QR SEGÚN TIPO
+  // =============================================
+  function buildQrString() {
+    const type = document.getElementById('qr-type').value;
+    const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+    switch (type) {
+      case 'text':  return g('qr-text');
+      case 'url':   {
+        const u = g('qr-url');
+        if (!u) return '';
+        return u.startsWith('http') ? u : 'https://' + u;
+      }
+      case 'email': {
+        const to = g('qr-email');
+        if (!to) return '';
+        const sub = g('qr-email-sub');
+        return `mailto:${to}${sub ? '?subject=' + encodeURIComponent(sub) : ''}`;
+      }
+      case 'phone': {
+        const p = g('qr-phone');
+        if (!p) return '';
+        return `tel:${p}`;
+      }
+      case 'sms': {
+        const num = g('qr-sms-num');
+        if (!num) return '';
+        const msg = g('qr-sms-msg');
+        return `smsto:${num}${msg ? ':' + msg : ''}`;
+      }
+      case 'wifi': {
+        const ssid = g('qr-wifi-ssid');
+        const sec  = g('qr-wifi-sec');
+        const pass = g('qr-wifi-pass');
+        if (!ssid) return '';
+        return `WIFI:T:${sec};S:${ssid};P:${pass};;`;
+      }
+      case 'vcard': {
+        const name = g('qr-vc-name');
+        const last = g('qr-vc-last');
+        const tel  = g('qr-vc-phone');
+        const em   = g('qr-vc-email');
+        const org  = g('qr-vc-org');
+        if (!name && !last && !tel && !em && !org) return '';
+        return `BEGIN:VCARD\nVERSION:3.0\nN:${last};${name}\nFN:${name} ${last}\nTEL:${tel}\nEMAIL:${em}\nORG:${org}\nEND:VCARD`;
+      }
+      case 'whatsapp': {
+        const ccRaw  = g('qr-wa-cc');
+        const numRaw = g('qr-wa-num');
+        const cc  = ccRaw.replace(/[^0-9]/g, '');
+        const num = numRaw.replace(/[^0-9]/g, '');
+        const msg = g('qr-wa-msg');
+        if (!cc || !num) return '';
+        const phone = cc + num;
+        const encodedMsg = msg ? ('?text=' + encodeURIComponent(msg)) : '';
+        return `https://wa.me/${phone}${encodedMsg}`;
+      }
+default: return '';
+    }
+  }
+
+  // =============================================
+  //  LOGO
+  // =============================================
+  function onLogoChange() {
+    const file = document.getElementById('logo-input').files[0];
+    if (!file) {
+      logoDataURL = null;
+      const lbl = document.getElementById('logo-label');
+      if (lbl) lbl.textContent='📎 Subir logo';
+      generate();
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      logoDataURL = e.target.result;
+      document.getElementById('logo-label').textContent = '✅ ' + file.name.substring(0, 18);
+      // Forzar nivel H cuando hay logo
+      document.getElementById('qr-ecl').value = 'H';
+      setAlert('⚠️ Corrección de error elevada a H automáticamente por el logo.', 'warn');
+      generate();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // =============================================
+  //  UTILIDADES UI
+  // =============================================
+  function onSizeChange() {
+    const val = document.getElementById('size').value;
+    document.getElementById('size-val').textContent = val;
+    generate();
+  }
+
+  // Sincronizar etiquetas hex de colores
+  document.getElementById('color-fg').addEventListener('input', e => {
+    document.getElementById('color-fg-hex').textContent = e.target.value;
+  });
+  document.getElementById('color-bg').addEventListener('input', e => {
+    document.getElementById('color-bg-hex').textContent = e.target.value;
+  });
+
+  function setAlert(msg, type) {
+    const el = document.getElementById('alert-msg');
+    el.textContent = msg || '';
+    el.style.color = type === 'error' ? '#C81D25' : type === 'warn' ? '#0B1E2E' : '#8FE3A1';
+    if (type === 'warn') {
+      el.style.background = 'rgba(241,243,245,.86)';
+      el.style.borderRadius = '12px';
+      el.style.padding = '.45rem .6rem';
+    } else {
+      el.style.background = 'transparent';
+      el.style.padding = '0';
+    }
+  }
+
+  function clearAlert() {
+    const el = document.getElementById('alert-msg');
+    el.textContent = '';
+    el.style.background = 'transparent';
+    el.style.padding = '0';
+  }
+
+  function clearPreview() {
+    document.getElementById('preview-container').innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'block';
+    document.getElementById('btn-png').disabled = true;
+    document.getElementById('btn-svg').disabled = true;
+    qrInstance = null;
+  }
+
+  // =============================================
+  //  GENERACIÓN PRINCIPAL
+  // =============================================
+  let debounceTimer = null;
+
+  function generate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(_generate, 120);
+  }
+
+  function _generate() {
+    clearAlert();
+    if (currentTab === 'qr') {
+      // Mantener nota WhatsApp visible solo cuando corresponde
+      const t = document.getElementById('qr-type').value;
+      toggleWhatsAppNote(t === 'whatsapp');
+      generateQR();
+    } else {
+      toggleWhatsAppNote(false);
+      generateBarcode();
+    }
+  }
+
+  // ─── GENERAR QR ───
+  function generateQR() {
+    const data = buildQrString();
+    if (!data) { clearPreview(); return; }
+
+    const size  = parseInt(document.getElementById('size').value);
+    const fg    = document.getElementById('color-fg').value;
+    const bg    = document.getElementById('color-bg').value;
+    const eclVal= document.getElementById('qr-ecl').value;
+
+    const eclMap = { L: QRCode.CorrectLevel.L, M: QRCode.CorrectLevel.M,
+                     Q: QRCode.CorrectLevel.Q, H: QRCode.CorrectLevel.H };
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      qrInstance = new QRCode(container, {
+        text:           data,
+        width:          size,
+        height:         size,
+        colorDark:      fg,
+        colorLight:     bg,
+        correctLevel:   eclMap[eclVal]
+      });
+
+      // Superponer logo si existe
+      if (logoDataURL) {
+        setTimeout(() => overlayLogo(container, size, logoDataURL), 120);
+      } else {
+        enableDownloads();
+      }
+
+    } catch (err) {
+      setAlert('❌ Error al generar el QR. Revisa los datos.', 'error');
+      clearPreview();
+    }
+  }
+
+  function overlayLogo(container, size, logoSrc) {
+    const canvas = container.querySelector('canvas');
+    if (!canvas) { enableDownloads(); return; }
+
+    const ctx   = canvas.getContext('2d');
+    const img   = new Image();
+    img.onload  = () => {
+      const logoSize  = size * 0.22;
+      const logoX     = (size - logoSize) / 2;
+      const logoY     = (size - logoSize) / 2;
+      const pad       = 7;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.roundRect(logoX - pad, logoY - pad, logoSize + pad*2, logoSize + pad*2, 10);
+      ctx.fill();
+
+      ctx.drawImage(img, logoX, logoY, logoSize, logoSize);
+      enableDownloads();
+    };
+    img.src = logoSrc;
+  }
+
+  // ─── GENERAR CÓDIGO DE BARRAS ───
+  function generateBarcode() {
+    const data = document.getElementById('bar-data').value.trim();
+    const type = document.getElementById('bar-type').value;
+    if (!data) { clearPreview(); return; }
+
+    const fg   = document.getElementById('color-fg').value;
+    const bg   = document.getElementById('color-bg').value;
+    const size = parseInt(document.getElementById('size').value);
+
+    const container = document.getElementById('preview-container');
+    container.innerHTML = `<svg id="barcode-svg"></svg>`;
+    document.getElementById('preview-placeholder').style.display = 'none';
+
+    try {
+      JsBarcode('#barcode-svg', data, {
+        format:      type,
+        lineColor:   fg,
+        background:  bg,
+        width:       Math.max(1, Math.round(size / 140)),
+        height:      Math.round(size * 0.42),
+        fontSize:    Math.round(size * 0.06),
+        margin:      14,
+        valid: valid => {
+          if (!valid) {
+            setAlert('❌ Datos inválidos para el tipo de código seleccionado.', 'error');
+            clearPreview();
+          }
+        }
+      });
+      enableDownloads();
+    } catch (err) {
+      setAlert('❌ ' + err.message, 'error');
+      clearPreview();
+    }
+  }
+
+  // =============================================
+  //  HABILITAR DESCARGAS
+  // =============================================
+  function enableDownloads() {
+    document.getElementById('btn-png').disabled = false;
+    document.getElementById('btn-svg').disabled = false;
+  }
+
+  // =============================================
+  //  DESCARGAS
+  // =============================================
+  function downloadPNG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const link = document.createElement('a');
+      link.download = 'codigo-qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } else {
+      const svg = document.getElementById('barcode-svg');
+      if (!svg) return;
+      svgToCanvas(svg, canvas => {
+        const link = document.createElement('a');
+        link.download = 'codigo-barras.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  }
+
+  function downloadSVG() {
+    if (currentTab === 'qr') {
+      const canvas = document.querySelector('#preview-container canvas');
+      if (!canvas) return;
+      const size = canvas.width;
+      const dataURL = canvas.toDataURL('image/png');
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+        <image href="${dataURL}" width="${size}" height="${size}"/>
+      </svg>`;
+      downloadBlob(svgStr, 'codigo-qr.svg', 'image/svg+xml');
+    } else {
+      const svgEl = document.getElementById('barcode-svg');
+      if (!svgEl) return;
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgEl);
+      downloadBlob(svgStr, 'codigo-barras.svg', 'image/svg+xml');
+    }
+  }
+
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function svgToCanvas(svgEl, callback) {
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svgEl);
+    const img = new Image();
+    const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width || 520;
+      canvas.height = img.height || 260;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = document.getElementById('color-bg').value;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      callback(canvas);
+    };
+
+    img.src = url;
+  }
+
+  // INIT
+  onQrTypeChange();
+  </script>
+
+<!-- ============================================================
+     Capa de refinamiento visual DarkFrame (solo estética).
+     No modifica ninguna función del script original: se limita a
+     observar el DOM y a re-tonar los colores de las alertas DESPUÉS
+     de que las funciones originales hayan hecho su trabajo.
+     Si algo falla, se desactiva silenciosamente sin afectar
+     la generación de códigos.
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* 1) Relleno degradado del slider de tamaño (pista con progreso) */
+  try {
+    var sizeSlider = document.getElementById('size');
+    var updateFill = function () {
+      var min = parseFloat(sizeSlider.min);
+      var max = parseFloat(sizeSlider.max);
+      var v = parseFloat(sizeSlider.value);
+      var pct = ((v - min) / (max - min)) * 100;
+      sizeSlider.style.setProperty('--fill', pct + '%');
+    };
+    if (sizeSlider) {
+      sizeSlider.addEventListener('input', updateFill);
+      updateFill();
+    }
+  } catch (e) { /* decorativo */ }
+
+  /* 2) Barrido de escáner SOLO cuando aparece un código desde vacío
+        (no en cada regeneración por tecleo: el contenedor se vacía y
+        rellena en <50ms; exigimos >300ms de reposo vacío para animar) */
+  try {
+    var box = document.getElementById('preview-box');
+    var container = document.getElementById('preview-container');
+    var hadContent = false;
+    var emptySince = Date.now();
+
+    if (box && container && 'MutationObserver' in window) {
+      var sweepTimer = null;
+      var observer = new MutationObserver(function () {
+        var now = Date.now();
+        var hasContent = container.children.length > 0;
+        if (!hasContent) {
+          emptySince = now;
+        } else if (!hadContent && (now - emptySince) > 300) {
+          box.classList.remove('scan');
+          void box.offsetWidth; /* reinicia la animación */
+          box.classList.add('scan');
+          clearTimeout(sweepTimer);
+          sweepTimer = setTimeout(function () { box.classList.remove('scan'); }, 950);
+        }
+        hadContent = hasContent;
+      });
+      observer.observe(container, { childList: true, subtree: true });
+    }
+  } catch (e) { /* decorativo */ }
+
+
+  /* 4) Kit 5.4 prohíbe emojis en la interfaz: se retiran de los mensajes que
+        escribe el script original (texto y estados intactos; solo glifos) */
+  try {
+    var STRIP = /[\u2190-\u21FF\u2300-\u27BF\u2B00-\u2BFF\uFE0F\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu;
+    var deemoji = function (node) {
+      if (!node || node.nodeType !== 3) return;
+      var t = node.nodeValue;
+      if (t && STRIP.test(t)) {
+        node.nodeValue = t.replace(STRIP, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '');
+      }
+    };
+    if ('MutationObserver' in window) {
+      var emojiObserver = new MutationObserver(function (muts) {
+        muts.forEach(function (m) {
+          m.addedNodes.forEach(deemoji);
+          if (m.type === 'characterData') deemoji(m.target);
+        });
+      });
+      var alertEl = document.getElementById('alert-msg');
+      var logoLbl = document.getElementById('logo-label');
+      if (alertEl) emojiObserver.observe(alertEl, { childList: true, characterData: true, subtree: true });
+      if (logoLbl) emojiObserver.observe(logoLbl, { childList: true, characterData: true, subtree: true });
+      // limpieza inicial de lo ya presente
+      if (alertEl) Array.prototype.forEach.call(alertEl.childNodes, deemoji);
+      if (logoLbl) Array.prototype.forEach.call(logoLbl.childNodes, deemoji);
+    }
+  } catch (e) { /* decorativo */ }
+
+  /* 3) Alertas con paleta DarkFrame: envuelve setAlert/clearAlert.
+        Las funciones originales se ejecutan igual (texto, estados y
+        comportamiento intactos); solo se re-aplican colores después. */
+  try {
+    var origSet = window.setAlert;
+    var origClear = window.clearAlert;
+
+    if (typeof origSet === 'function') {
+      window.setAlert = function (msg, type) {
+        origSet(msg, type);
+        var el = document.getElementById('alert-msg');
+        if (!el) return;
+        if (!msg) {
+          el.style.background = 'transparent';
+          el.style.border = '1px solid transparent';
+          el.style.padding = '0';
+          return;
+        }
+        if (type === 'error') {
+          el.style.color = '#FF2D4D';
+          el.style.background = 'rgba(255,45,77,.09)';
+          el.style.border = '1px solid rgba(255,45,77,.38)';
+        } else if (type === 'warn') {
+          el.style.color = '#FBBF24';
+          el.style.background = 'rgba(251,191,36,.09)';
+          el.style.border = '1px solid rgba(251,191,36,.38)';
+        } else {
+          el.style.color = '#7ED957';
+          el.style.background = 'rgba(126,217,87,.09)';
+          el.style.border = '1px solid rgba(126,217,87,.38)';
+        }
+        el.style.borderRadius = '9px';
+        el.style.padding = '.55rem .7rem';
+      };
+    }
+
+    if (typeof origClear === 'function') {
+      window.clearAlert = function () {
+        origClear();
+        var el = document.getElementById('alert-msg');
+        if (el) {
+          el.style.border = '1px solid transparent';
+          el.style.padding = '0';
+        }
+      };
+    }
+  } catch (e) { /* decorativo */ }
+})();
+</script>
+</body>
+</html>

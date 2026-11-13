@@ -1,0 +1,138 @@
+
+<!-- ============================================================
+     Capa de refinamiento visual DarkFrame (solo estética).
+     No modifica ninguna función del script original: se limita a
+     observar el DOM y a re-tonar los colores de las alertas DESPUÉS
+     de que las funciones originales hayan hecho su trabajo.
+     Si algo falla, se desactiva silenciosamente sin afectar
+     la generación de códigos.
+     ============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* 1) Relleno degradado del slider de tamaño (pista con progreso) */
+  try {
+    var sizeSlider = document.getElementById('size');
+    var updateFill = function () {
+      var min = parseFloat(sizeSlider.min);
+      var max = parseFloat(sizeSlider.max);
+      var v = parseFloat(sizeSlider.value);
+      var pct = ((v - min) / (max - min)) * 100;
+      sizeSlider.style.setProperty('--fill', pct + '%');
+    };
+    if (sizeSlider) {
+      sizeSlider.addEventListener('input', updateFill);
+      updateFill();
+    }
+  } catch (e) { /* decorativo */ }
+
+  /* 2) Barrido de escáner SOLO cuando aparece un código desde vacío
+        (no en cada regeneración por tecleo: el contenedor se vacía y
+        rellena en <50ms; exigimos >300ms de reposo vacío para animar) */
+  try {
+    var box = document.getElementById('preview-box');
+    var container = document.getElementById('preview-container');
+    var hadContent = false;
+    var emptySince = Date.now();
+
+    if (box && container && 'MutationObserver' in window) {
+      var sweepTimer = null;
+      var observer = new MutationObserver(function () {
+        var now = Date.now();
+        var hasContent = container.children.length > 0;
+        if (!hasContent) {
+          emptySince = now;
+        } else if (!hadContent && (now - emptySince) > 300) {
+          box.classList.remove('scan');
+          void box.offsetWidth; /* reinicia la animación */
+          box.classList.add('scan');
+          clearTimeout(sweepTimer);
+          sweepTimer = setTimeout(function () { box.classList.remove('scan'); }, 950);
+        }
+        hadContent = hasContent;
+      });
+      observer.observe(container, { childList: true, subtree: true });
+    }
+  } catch (e) { /* decorativo */ }
+
+
+  /* 4) Kit 5.4 prohíbe emojis en la interfaz: se retiran de los mensajes que
+        escribe el script original (texto y estados intactos; solo glifos) */
+  try {
+    var STRIP = /[\u2190-\u21FF\u2300-\u27BF\u2B00-\u2BFF\uFE0F\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/gu;
+    var deemoji = function (node) {
+      if (!node || node.nodeType !== 3) return;
+      var t = node.nodeValue;
+      if (t && STRIP.test(t)) {
+        node.nodeValue = t.replace(STRIP, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '');
+      }
+    };
+    if ('MutationObserver' in window) {
+      var emojiObserver = new MutationObserver(function (muts) {
+        muts.forEach(function (m) {
+          m.addedNodes.forEach(deemoji);
+          if (m.type === 'characterData') deemoji(m.target);
+        });
+      });
+      var alertEl = document.getElementById('alert-msg');
+      var logoLbl = document.getElementById('logo-label');
+      if (alertEl) emojiObserver.observe(alertEl, { childList: true, characterData: true, subtree: true });
+      if (logoLbl) emojiObserver.observe(logoLbl, { childList: true, characterData: true, subtree: true });
+      // limpieza inicial de lo ya presente
+      if (alertEl) Array.prototype.forEach.call(alertEl.childNodes, deemoji);
+      if (logoLbl) Array.prototype.forEach.call(logoLbl.childNodes, deemoji);
+    }
+  } catch (e) { /* decorativo */ }
+
+  /* 3) Alertas con paleta DarkFrame: envuelve setAlert/clearAlert.
+        Las funciones originales se ejecutan igual (texto, estados y
+        comportamiento intactos); solo se re-aplican colores después. */
+  try {
+    var origSet = window.setAlert;
+    var origClear = window.clearAlert;
+
+    if (typeof origSet === 'function') {
+      window.setAlert = function (msg, type) {
+        origSet(msg, type);
+        var el = document.getElementById('alert-msg');
+        if (!el) return;
+        if (!msg) {
+          el.style.background = 'transparent';
+          el.style.border = '1px solid transparent';
+          el.style.padding = '0';
+          return;
+        }
+        if (type === 'error') {
+          el.style.color = '#FF2D4D';
+          el.style.background = 'rgba(255,45,77,.09)';
+          el.style.border = '1px solid rgba(255,45,77,.38)';
+        } else if (type === 'warn') {
+          el.style.color = '#FBBF24';
+          el.style.background = 'rgba(251,191,36,.09)';
+          el.style.border = '1px solid rgba(251,191,36,.38)';
+        } else {
+          el.style.color = '#7ED957';
+          el.style.background = 'rgba(126,217,87,.09)';
+          el.style.border = '1px solid rgba(126,217,87,.38)';
+        }
+        el.style.borderRadius = '9px';
+        el.style.padding = '.55rem .7rem';
+      };
+    }
+
+    if (typeof origClear === 'function') {
+      window.clearAlert = function () {
+        origClear();
+        var el = document.getElementById('alert-msg');
+        if (el) {
+          el.style.border = '1px solid transparent';
+          el.style.padding = '0';
+        }
+      };
+    }
+  } catch (e) { /* decorativo */ }
+})();
+</script>
+</body>
+</html>

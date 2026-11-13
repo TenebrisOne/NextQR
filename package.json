@@ -1,0 +1,15 @@
+{
+  "name": "nexbarqr",
+  "version": "3.1.0",
+  "private": true,
+  "description": "NexbarQR — Generador gratis de códigos QR y de barras. Identidad DarkFrame.",
+  "scripts": {
+    "assemble": "bash scripts/assemble.sh",
+    "serve": "firebase serve --only hosting",
+    "deploy": "bash scripts/assemble.sh && firebase deploy --only hosting:prod",
+    "deploy:preview": "firebase hosting:channel:deploy preview --expires 7d --only prod"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.36.0"
+  }
+}
